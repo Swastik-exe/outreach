@@ -1,0 +1,181 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain,text/css,application/javascript
+    min-response-size: 1024
+
+spring:
+  application:
+    name: outreach
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: ${HIKARI_MAX_POOL:10}
+      minimum-idle: ${HIKARI_MIN_IDLE:2}
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      idle-timeout: 600000
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL:false}
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+
+  task:
+    execution:
+      thread-name-prefix: async-
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:placeholder}
+            client-secret: ${GOOGLE_CLIENT_SECRET:placeholder}
+            scope: email, profile
+          github:
+            client-id: ${GITHUB_CLIENT_ID:placeholder}
+            client-secret: ${GITHUB_CLIENT_SECRET:placeholder}
+            scope: user:email, read:user
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui
+    operationsSorter: alpha
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiry-ms: 900000      # 15 minutes
+    refresh-token-expiry-days: 7
+  cookie:
+    secure: ${COOKIE_SECURE:false}
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  oauth2:
+    success-redirect: ${FRONTEND_URL:http://localhost:3000}/auth/callback
+
+  ai:
+    gemini:
+      api-key: ${GEMINI_API_KEY:}
+      # gemini-1.5-flash was retired by Google; gemini-2.5-flash is the current stable flash model.
+      model: ${GEMINI_MODEL:gemini-2.5-flash}
+      max-tokens: 2048
+      timeout-seconds: 30
+    groq:
+      api-key: ${GROQ_API_KEY:}
+      model: llama-3.1-8b-instant
+      max-tokens: 1024
+      timeout-seconds: 30
+    daily-token-budget:
+      gemini: 100000
+      groq: 50000
+    prompt-version: 1
+
+  storage:
+    local:
+      path: ${STORAGE_LOCAL_PATH:./storage}
+    r2:
+      account-id: ${R2_ACCOUNT_ID:}
+      access-key: ${R2_ACCESS_KEY:}
+      secret-key: ${R2_SECRET_KEY:}
+      bucket: ${R2_BUCKET:}
+
+  resend:
+    # Resend.com API key. If blank, emails are logged instead of sent (dev mode).
+    api-key: ${RESEND_API_KEY:}
+    from: ${RESEND_FROM:noreply@outreachos.com}
+
+  inbound:
+    # Shared secret for the inbound email webhook (REQUIRED — reject if blank).
+    webhook-secret: ${INBOUND_WEBHOOK_SECRET:}
+    # Domain used for forwarding addresses.
+    email-domain: ${INBOUND_EMAIL_DOMAIN:track.outreachos.com}
+
+  razorpay:
+    key-id: ${RAZORPAY_KEY_ID:}
+    key-secret: ${RAZORPAY_KEY_SECRET:}
+    webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
+    plan-id:
+      monthly: ${RAZORPAY_PLAN_ID_MONTHLY:}
+      annual: ${RAZORPAY_PLAN_ID_ANNUAL:}
+    pricing:
+      season-pass-inr: ${PRICE_SEASON_PASS_INR:499}
+      monthly-inr: ${PRICE_MONTHLY_INR:199}
+      annual-inr: ${PRICE_ANNUAL_INR:1499}
+
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: ${SPRING_PROFILES_ACTIVE:local}
+  send-default-pii: false
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      gemini:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 50
+        waitDurationInOpenState: PT30S
+        permittedNumberOfCallsInHalfOpenState: 2
+        ignoreExceptions:
+          - com.outreach.ai.provider.SchemaValidationException
+      groq:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 50
+        waitDurationInOpenState: PT30S
+        permittedNumberOfCallsInHalfOpenState: 2
+        ignoreExceptions:
+          - com.outreach.ai.provider.SchemaValidationException
+
+logging:
+  level:
+    com.outreach: INFO
+    org.springframework.security: WARN
+    org.flywaydb: INFO

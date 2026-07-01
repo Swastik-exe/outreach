@@ -1,0 +1,101 @@
+# Render Blueprint — see https://render.com/docs/blueprint-spec
+# `sync: false` = "required, but set the real value by hand in the Render
+# dashboard" — Render refuses to let a secret with sync:false be committed
+# to render.yaml, which is the whole point (this file is safe to commit).
+services:
+  - type: web
+    name: outreach-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    branch: main
+    healthCheckPath: /actuator/health
+    envVars:
+      # ── Fixed for prod (safe to commit — not secrets) ──────────────────────
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: REDIS_SSL
+        value: "true"
+
+      # ── Database (Supabase) ────────────────────────────────────────────────
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: HIKARI_MAX_POOL
+        value: "8"
+      - key: HIKARI_MIN_IDLE
+        value: "2"
+
+      # ── Redis (Upstash) ─────────────────────────────────────────────────────
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        sync: false
+      - key: REDIS_PASSWORD
+        sync: false
+
+      # ── Security ────────────────────────────────────────────────────────────
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+
+      # ── OAuth (Google + GitHub) ─────────────────────────────────────────────
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+
+      # ── Email (Resend) + inbound webhook ────────────────────────────────────
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        sync: false
+      - key: INBOUND_WEBHOOK_SECRET
+        sync: false
+      - key: INBOUND_EMAIL_DOMAIN
+        sync: false
+
+      # ── AI providers (at least one required) ────────────────────────────────
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+
+      # ── File storage (Cloudflare R2) ─────────────────────────────────────────
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY
+        sync: false
+      - key: R2_SECRET_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+
+      # ── Payments (Razorpay — TEST keys until KYC is done) ────────────────────
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: RAZORPAY_PLAN_ID_MONTHLY
+        sync: false
+      - key: RAZORPAY_PLAN_ID_ANNUAL
+        sync: false
+
+      # ── Observability (optional — omit to leave Sentry no-op) ───────────────
+      - key: SENTRY_DSN
+        sync: false

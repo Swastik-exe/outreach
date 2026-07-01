@@ -1,0 +1,28 @@
+name: Deploy Backend to Render
+
+# Render builds the Dockerfile itself when the deploy hook fires — this
+# workflow's only job is to tell Render "new code is on main, go build it."
+# No image registry, no Docker build here — keeps CI fast and Render is the
+# single source of truth for the running container.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'pom.xml'
+      - 'mvnw'
+      - 'Dockerfile'
+      - 'render.yaml'
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy hook
+        run: |
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL secret is not set — skipping trigger." >&2
+            exit 1
+          fi
+          curl -fsSL -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
