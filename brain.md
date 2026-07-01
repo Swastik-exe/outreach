@@ -634,7 +634,7 @@ List endpoints return Page { content, totalElements, ... }
 | Frontend (Vercel) | `https://outreach-iota-ruddy.vercel.app` |
 | Backend health | `https://outreach-u35s.onrender.com/actuator/health` |
 
-**Status as of Jul 2, 2026:** Frontend confirmed live (`/` → 307 self-redirect is normal Next.js root-page behavior, `/login` → 200). Backend health check is timing out with zero response (not a normal "still building" pattern) — most likely `StartupValidator` crash-looping on missing `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` (left blank pending real Test Mode keys). **Also still pending:** update Render's `FRONTEND_URL` + `CORS_ALLOWED_ORIGINS` from `localhost:3000` to the real Vercel URL above — login will fail via CORS until this is done.
+**Status as of Jul 2, 2026: LIVE AND VERIFIED END-TO-END.** Backend `{"status":"UP"}`, CORS preflight from the real Vercel origin returns correct `access-control-allow-origin`, and a full register → verify → login → dashboard → resume upload → tracker → pricing smoke test passed against production (test data cleaned up afterward, including the R2 object — zero residue). UptimeRobot monitor confirmed **Up, 100% uptime**, 5-min interval. Root cause of the one real deploy bug found and fixed: an unanchored `storage/` rule in `.gitignore` was silently excluding the entire `src/main/java/com/outreach/resume/storage/` package from every commit (fixed → `/storage/`, files recovered in commit `ea58c68`).
 
 ### UptimeRobot setup (do this once backend is confirmed live)
 1. Go to **uptimerobot.com** → sign up (free) → **Add New Monitor**

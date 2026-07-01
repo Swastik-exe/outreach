@@ -8,11 +8,14 @@
 | Backend API | https://outreach-u35s.onrender.com |
 | Backend health check | https://outreach-u35s.onrender.com/actuator/health |
 
-**Before sharing with anyone, confirm both of these are done** (see brain.md → "Live URLs" section for current status):
-- [ ] Backend health check returns `{"status":"UP"}`
-- [ ] `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` (Test Mode) set on Render
-- [ ] Render's `FRONTEND_URL` and `CORS_ALLOWED_ORIGINS` updated to `https://outreach-iota-ruddy.vercel.app`
-- [ ] Full login loop tested end-to-end (register → verify email → login → dashboard) from the live Vercel URL, not localhost
+**Pre-launch checks — all complete as of Jul 2, 2026:**
+- [x] Backend health check returns `{"status":"UP"}`
+- [x] `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` (Test Mode) set on Render
+- [x] Render's `FRONTEND_URL` and `CORS_ALLOWED_ORIGINS` updated to `https://outreach-iota-ruddy.vercel.app` (verified via real CORS preflight test)
+- [x] Full loop tested end-to-end against production (register → verify → login → dashboard → resume upload → tracker → pricing) — passed, test data cleaned up afterward
+- [x] UptimeRobot monitor live — Up, 100% uptime, 5-min interval
+
+**The app is launched. Nothing is blocking sharing the link.**
 
 ---
 
