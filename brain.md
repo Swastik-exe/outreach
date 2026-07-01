@@ -626,6 +626,27 @@ List endpoints return Page { content, totalElements, ... }
 
 ---
 
+## Live URLs (pre-launch)
+
+| Service | URL |
+|---|---|
+| Backend (Render) | `https://outreach-u35s.onrender.com` |
+| Frontend (Vercel) | `https://outreach-iota-ruddy.vercel.app` |
+| Backend health | `https://outreach-u35s.onrender.com/actuator/health` |
+
+**Status as of Jul 2, 2026:** Frontend confirmed live (`/` → 307 self-redirect is normal Next.js root-page behavior, `/login` → 200). Backend health check is timing out with zero response (not a normal "still building" pattern) — most likely `StartupValidator` crash-looping on missing `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` (left blank pending real Test Mode keys). **Also still pending:** update Render's `FRONTEND_URL` + `CORS_ALLOWED_ORIGINS` from `localhost:3000` to the real Vercel URL above — login will fail via CORS until this is done.
+
+### UptimeRobot setup (do this once backend is confirmed live)
+1. Go to **uptimerobot.com** → sign up (free) → **Add New Monitor**
+2. Monitor Type: **HTTP(s)**
+3. Friendly Name: `Outreach Backend`
+4. URL: `https://outreach-u35s.onrender.com/actuator/health`
+5. Monitoring Interval: **5 minutes**
+6. Save
+7. This keeps Render's free instance warm (pings every 5 min prevent the 15-min idle spin-down + ~10-30s cold-start delay for real users).
+
+---
+
 ## Deployment (Render + Vercel) — Jul 2026
 
 **Architecture:** Backend = Docker container on Render (built from repo `Dockerfile`). Frontend = Vercel (native Next.js build, `frontend/` as project root). Both auto-deploy on push to `main` via GitHub Actions triggering a Render deploy hook / Vercel CLI deploy respectively.
