@@ -17,7 +17,9 @@ target/
 .env
 
 # Local file storage (dev-only fallback for uploaded resumes — runtime data, not source)
-storage/
+# Leading slash matters: anchors to repo root only, so it does NOT match
+# src/main/java/com/outreach/resume/storage/ (the actual Java package).
+/storage/
 
 # IDE
 .idea/
