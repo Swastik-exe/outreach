@@ -3,7 +3,7 @@
 set -uo pipefail
 BASE="${BASE:-https://outreach-u35s.onrender.com/api/v1}"
 EMAIL="probe-$(date +%s)@example.com"
-EXPECTED_TAG="${EXPECTED_TAG:-email-fix-v1}"
+EXPECTED_TAG="${EXPECTED_TAG:-email-fix-v2}"
 
 echo "=== Build tag (expect: $EXPECTED_TAG) ==="
 TAG_RESP=$(curl -sf "$BASE/meta/build" 2>/dev/null || echo "MISSING")

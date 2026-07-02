@@ -97,6 +97,7 @@ cors:
 
 app:
   build-tag: ${BUILD_TAG:local}
+  public-api-url: ${PUBLIC_API_URL:http://localhost:8080}
   jwt:
     secret: ${JWT_SECRET}
     access-token-expiry-ms: 900000      # 15 minutes

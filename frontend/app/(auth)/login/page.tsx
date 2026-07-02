@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { Suspense, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/auth';
 
-export default function LoginPage() {
+function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const verified = searchParams.get('verified') === '1';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -35,7 +37,6 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-[#0A0B0E] flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="text-center mb-8">
           <span className="text-2xl font-bold tracking-tight text-white">
             out<span className="text-indigo-400">reach</span>
@@ -48,6 +49,12 @@ export default function LoginPage() {
           className="bg-[#111318] border border-[#2A2D36] rounded-xl p-6 space-y-4"
           noValidate
         >
+          {verified && (
+            <div role="status" className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 text-sm text-emerald-400">
+              Email verified! You can sign in now.
+            </div>
+          )}
+
           {error && (
             <div
               role="alert"
@@ -125,5 +132,13 @@ export default function LoginPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

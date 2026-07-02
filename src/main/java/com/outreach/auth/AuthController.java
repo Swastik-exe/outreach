@@ -7,9 +7,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 @RestController
@@ -18,6 +22,9 @@ import java.util.Arrays;
 public class AuthController {
 
     private final AuthService authService;
+
+    @Value("${app.frontend-url:http://localhost:3000}")
+    private String frontendUrl;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody RegisterRequest req) {
@@ -29,6 +36,23 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> verifyEmail(@Valid @RequestBody VerifyEmailRequest req) {
         authService.verifyEmail(req.getToken());
         return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    /**
+     * One-click link from verification email — no frontend JS required.
+     * Redirects to login on success, or back to verify page with token on failure.
+     */
+    @GetMapping("/verify-email")
+    public void verifyEmailFromLink(@RequestParam("token") String token, HttpServletResponse response)
+            throws IOException {
+        String base = frontendUrl.replaceAll("/$", "");
+        try {
+            authService.verifyEmail(token);
+            response.sendRedirect(base + "/login?verified=1");
+        } catch (Exception e) {
+            String encoded = URLEncoder.encode(token, StandardCharsets.UTF_8);
+            response.sendRedirect(base + "/verify-email?token=" + encoded + "&error=1");
+        }
     }
 
     @PostMapping("/resend-verification")

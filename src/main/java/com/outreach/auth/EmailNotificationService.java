@@ -35,6 +35,7 @@ public class EmailNotificationService {
     private final String apiKey;
     private final String fromAddress;
     private final String frontendUrl;
+    private final String publicApiUrl;
     private final HttpClient http;
     private final EmailDeliveryExecutor deliveryExecutor;
 
@@ -42,10 +43,12 @@ public class EmailNotificationService {
             @Value("${app.resend.api-key:}") String apiKey,
             @Value("${app.resend.from:noreply@outreachos.com}") String fromAddress,
             @Value("${app.frontend-url:http://localhost:3000}") String frontendUrl,
+            @Value("${app.public-api-url:http://localhost:8080}") String publicApiUrl,
             EmailDeliveryExecutor deliveryExecutor) {
         this.apiKey = apiKey;
         this.fromAddress = fromAddress;
         this.frontendUrl = frontendUrl;
+        this.publicApiUrl = publicApiUrl.strip().replaceAll("/$", "");
         this.deliveryExecutor = deliveryExecutor;
         this.http = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
@@ -53,7 +56,8 @@ public class EmailNotificationService {
     }
 
     public void sendVerificationEmail(String email, String rawToken) {
-        String link = frontendUrl + "/verify-email?token=" + rawToken;
+        // One-click verify via backend — works even if Vercel frontend is stale.
+        String link = publicApiUrl + "/api/v1/auth/verify-email?token=" + rawToken;
         String html = """
                 <p>Welcome to Outreach!</p>
                 <p>Click the link below to verify your email (valid 24 hours):</p>
