@@ -105,4 +105,15 @@ grep -r TODO src/ frontend/ --include='*.java' --include='*.ts' --include='*.tsx
 | Debug instrumentation | Removed in final cleanup |
 | `RESEND_API_KEY` on Render | **You must confirm** — emails fail silently without it |
 
-**Honest score: ~9/10 engineering** for free-tier MVP. Not claiming 10/10 until: Render paid tier or accept cold starts, full E2E suite, Resend verified domain, UI/UX redesign.
+**Honest score: ~8.5–9/10 pre-UI/UX engineering** — not 10/10. See gaps below.
+
+### Live production gaps (audited Jul 2, 2026)
+
+| Item | Status |
+|------|--------|
+| One-click `GET /auth/verify-email` | Was **500** on prod — fixed in `email-fix-v4` (redirect URL normalization) |
+| `BUILD_TAG` on Render | Shows `local` until you set `BUILD_TAG` + `PUBLIC_API_URL` in Render dashboard |
+| `render.yaml` env vars | **Not auto-synced** — must set manually or re-apply blueprint |
+| Register latency | ~3–5s on Render free tier (acceptable, not instant) |
+| E2E tests, tracing, dashboards | Not done |
+| UI/UX | Deferred to your Claude redesign |

@@ -3,7 +3,7 @@
 set -uo pipefail
 BASE="${BASE:-https://outreach-u35s.onrender.com/api/v1}"
 EMAIL="probe-$(date +%s)@example.com"
-EXPECTED_TAG="${EXPECTED_TAG:-email-fix-v3}"
+EXPECTED_TAG="${EXPECTED_TAG:-email-fix-v4}"
 
 echo "=== One-click verify redirect (expect 302) ==="
 REDIR=$(curl -sI "$BASE/auth/verify-email?token=invalid-test-token" | head -1)

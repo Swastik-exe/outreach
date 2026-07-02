@@ -8,11 +8,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -44,25 +42,33 @@ public class AuthController {
      * Redirects to login on success, or back to verify page with token on failure.
      */
     @GetMapping("/verify-email")
-    public ResponseEntity<Void> verifyEmailFromLink(
-            @RequestParam(value = "token", required = false) String token) {
-        String base = frontendUrl.replaceAll("/$", "");
+    public void verifyEmailFromLink(
+            @RequestParam(value = "token", required = false) String token,
+            HttpServletResponse response) throws java.io.IOException {
+        String base = normalizeFrontendUrl(frontendUrl);
         if (token == null || token.isBlank()) {
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(base + "/verify-email?error=1"))
-                    .build();
+            response.sendRedirect(base + "/verify-email?error=1");
+            return;
         }
         try {
             authService.verifyEmail(token);
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(base + "/login?verified=1"))
-                    .build();
+            response.sendRedirect(base + "/login?verified=1");
         } catch (Exception e) {
             String encoded = URLEncoder.encode(token, StandardCharsets.UTF_8);
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(base + "/verify-email?token=" + encoded + "&error=1"))
-                    .build();
+            response.sendRedirect(base + "/verify-email?token=" + encoded + "&error=1");
         }
+    }
+
+    /** Ensures redirect Location is a valid absolute URL (Render env may omit https://). */
+    static String normalizeFrontendUrl(String url) {
+        String base = url == null ? "" : url.strip().replaceAll("/$", "");
+        if (base.isEmpty()) {
+            return "http://localhost:3000";
+        }
+        if (!base.startsWith("http://") && !base.startsWith("https://")) {
+            base = "https://" + base;
+        }
+        return base;
     }
 
     @PostMapping("/resend-verification")
