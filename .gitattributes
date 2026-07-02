@@ -1,0 +1,21 @@
+# Normalize line endings — prevents Windows CRLF from polluting diffs on Linux CI.
+* text=auto eol=lf
+
+# Shell scripts must stay LF (shebang breaks on CRLF in WSL/Linux CI).
+*.sh text eol=lf
+
+# Windows batch files keep CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets — do not transform.
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary

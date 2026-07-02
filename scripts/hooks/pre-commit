@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Pre-commit hook — blocks accidental secret leakage.
+# Installed by: bash scripts/setup-git.sh
+
+set -euo pipefail
+
+RED='\033[0;31m'
+NC='\033[0m'
+
+fail() {
+  echo -e "${RED}COMMIT BLOCKED:${NC} $1" >&2
+  exit 1
+}
+
+# Block staging .env files (real secrets live here).
+while IFS= read -r -d '' file; do
+  base=$(basename "$file")
+  case "$base" in
+    .env|.env.local|.env.production|.env.development)
+      fail "Refusing to commit $file — use .env.example for templates only."
+      ;;
+  esac
+  case "$file" in
+    */.env|*/.env.local|*/.env.production|*/.env.development)
+      fail "Refusing to commit $file — use .env.example for templates only."
+      ;;
+  esac
+done < <(git diff --cached --name-only -z 2>/dev/null || true)
+
+# Scan added lines in staged diff (exclude this hook — it contains pattern literals).
+ADDED_LINES=$(
+  git diff --cached -U0 --no-color -- . ':(exclude)scripts/hooks/pre-commit' 2>/dev/null \
+    | grep '^+' \
+    | grep -v '^+++' \
+    || true
+)
+
+if [ -z "$ADDED_LINES" ]; then
+  exit 0
+fi
+
+PATTERNS=(
+  'AKIA[0-9A-Z]{16}'
+  'sk_live_[0-9a-zA-Z]{20,}'
+  'sk_test_[0-9a-zA-Z]{20,}'
+  'BEGIN.*PRIVATE KEY'
+  'postgresql://[^[:space:]]+:[^[:space:]]+@'
+  'mysql://[^[:space:]]+:[^[:space:]]+@'
+  'mongodb(\+srv)?://[^[:space:]]+:[^[:space:]]+@'
+  'rsk_[0-9a-zA-Z]{20,}'
+  're_[0-9a-zA-Z]{20,}'
+)
+
+for pattern in "${PATTERNS[@]}"; do
+  if echo "$ADDED_LINES" | grep -Eiq "$pattern"; then
+    fail "Staged diff matches secret pattern. Remove the secret before committing."
+  fi
+done
+
+exit 0

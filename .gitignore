@@ -43,6 +43,11 @@ Thumbs.db
 logs/
 spring.log
 
+# Local commit helpers (Cursor/PowerShell workarounds — never commit)
+.commit-msg*.txt
+.do-commit*.sh
+.tmp-*
+
 # JVM crash logs
 hs_err_pid*
 replay_pid*
