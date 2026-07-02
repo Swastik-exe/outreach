@@ -135,6 +135,14 @@ public class AuthService {
                     ApiErrorCode.ACCOUNT_SUSPENDED);
         }
 
+        if (user.getAuthProvider() == AuthProvider.local
+                && !Boolean.TRUE.equals(user.getIsEmailVerified())) {
+            throw new AppException(
+                    "Please verify your email before signing in. Check your inbox or resend the verification link.",
+                    org.springframework.http.HttpStatus.FORBIDDEN,
+                    ApiErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
         rateLimitService.resetLoginRateLimit(req.getEmail(), ip);
         user.setLastActiveAt(OffsetDateTime.now());
         userRepository.save(user);

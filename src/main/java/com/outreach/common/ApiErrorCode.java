@@ -9,6 +9,7 @@ public enum ApiErrorCode {
     UNAUTHORIZED,
     FORBIDDEN,
     ACCOUNT_SUSPENDED,
+    EMAIL_NOT_VERIFIED,
     NOT_FOUND,
     CONFLICT,
     RATE_LIMITED,

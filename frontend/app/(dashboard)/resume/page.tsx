@@ -259,6 +259,9 @@ export default function ResumePage() {
 
   const load = useCallback(async () => {
     const res = await api.get<SpringPage<ResumeResponse>>('/resumes?page=0&size=100');
+    // #region agent log
+    fetch('http://127.0.0.1:7803/ingest/1db6d770-9892-4152-aea8-958874f6587b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0dbd5'},body:JSON.stringify({sessionId:'d0dbd5',location:'resume/page.tsx:load',message:'resume list loaded',data:{success:res.success,count:res.data?pageContent(res.data).length:0,errorCode:res.errorCode??null},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     if (res.success && res.data) {
       setResumes(pageContent(res.data));
     } else {

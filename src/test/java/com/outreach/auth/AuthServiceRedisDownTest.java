@@ -54,6 +54,8 @@ class AuthServiceRedisDownTest {
         User user = User.builder()
                 .email("test@example.com")
                 .passwordHash("hash")
+                .authProvider(AuthProvider.local)
+                .isEmailVerified(true)
                 .planTier(PlanTier.free)
                 .isSuspended(false)
                 .createdAt(OffsetDateTime.now())

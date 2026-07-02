@@ -35,13 +35,13 @@ export default function RegisterPage() {
           <h1 className="text-xl font-bold text-white mb-2">Check your email</h1>
           <p className="text-[#8B8FA8] text-sm mb-6">
             We sent a verification link to <strong className="text-[#F4F5F7]">{email}</strong>.
-            Check the server logs for the token (email delivery coming soon).
+            Open the link in your inbox (check spam too). It expires in 24 hours.
           </p>
           <Link
-            href="/verify-email"
-            className="text-indigo-400 hover:text-indigo-300 text-sm transition-colors"
+            href={`/verify-email?email=${encodeURIComponent(email)}`}
+            className="inline-block text-indigo-400 hover:text-indigo-300 text-sm transition-colors"
           >
-            Enter verification token manually →
+            Resend or enter token manually →
           </Link>
         </div>
       </main>

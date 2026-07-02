@@ -76,8 +76,9 @@ export async function apiFetch<T>(
       headers,
     });
   } catch {
-    // Network failure — offline, DNS/CORS error, or the connection dropped
-    // mid-request (e.g. a Render free-tier cold-start gateway timeout).
+    // #region agent log
+    fetch('http://127.0.0.1:7803/ingest/1db6d770-9892-4152-aea8-958874f6587b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0dbd5'},body:JSON.stringify({sessionId:'d0dbd5',location:'api.ts:apiFetch:fetch-catch',message:'fetch threw',data:{path,baseUrl:BASE_URL},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     return { success: false, error: 'Network error, please try again.' };
   }
 
@@ -87,6 +88,9 @@ export async function apiFetch<T>(
     if (refreshed) {
       return apiFetch<T>(path, { ...options, _isRetry: true });
     }
+    // #region agent log
+    fetch('http://127.0.0.1:7803/ingest/1db6d770-9892-4152-aea8-958874f6587b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0dbd5'},body:JSON.stringify({sessionId:'d0dbd5',location:'api.ts:apiFetch:401',message:'session expired redirect',data:{path,status:401},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     // Refresh failed — redirect to login
     if (typeof window !== 'undefined') {
       tokenStore.clear();
@@ -96,10 +100,15 @@ export async function apiFetch<T>(
   }
 
   try {
-    return await res.json() as ApiResponse<T>;
+    const body = await res.json() as ApiResponse<T>;
+    // #region agent log
+    fetch('http://127.0.0.1:7803/ingest/1db6d770-9892-4152-aea8-958874f6587b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0dbd5'},body:JSON.stringify({sessionId:'d0dbd5',location:'api.ts:apiFetch:response',message:'api response',data:{path,status:res.status,success:body.success,errorCode:body.errorCode??null,hasData:body.data!=null,dataIsArray:Array.isArray(body.data),hasContent:!!(body.data&&typeof body.data==='object'&&'content' in (body.data as object))},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
+    return body;
   } catch {
-    // Non-JSON response body — e.g. a gateway/HTML error page instead of the
-    // expected ApiResponse envelope.
+    // #region agent log
+    fetch('http://127.0.0.1:7803/ingest/1db6d770-9892-4152-aea8-958874f6587b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0dbd5'},body:JSON.stringify({sessionId:'d0dbd5',location:'api.ts:apiFetch:json-catch',message:'non-JSON body',data:{path,status:res.status},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     return { success: false, error: 'Network error, please try again.' };
   }
 }
@@ -127,8 +136,9 @@ export async function apiUpload<T>(
       credentials: 'include',
     });
   } catch {
-    // Network failure — offline, DNS/CORS error, or the connection dropped
-    // mid-request (e.g. a Render free-tier cold-start gateway timeout).
+    // #region agent log
+    fetch('http://127.0.0.1:7803/ingest/1db6d770-9892-4152-aea8-958874f6587b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0dbd5'},body:JSON.stringify({sessionId:'d0dbd5',location:'api.ts:apiUpload:fetch-catch',message:'upload fetch threw',data:{path},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     return { success: false, error: 'Network error, please try again.' };
   }
 
@@ -143,7 +153,11 @@ export async function apiUpload<T>(
   }
 
   try {
-    return await res.json() as ApiResponse<T>;
+    const body = await res.json() as ApiResponse<T>;
+    // #region agent log
+    fetch('http://127.0.0.1:7803/ingest/1db6d770-9892-4152-aea8-958874f6587b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0dbd5'},body:JSON.stringify({sessionId:'d0dbd5',location:'api.ts:apiUpload:response',message:'upload response',data:{path,status:res.status,success:body.success,errorCode:body.errorCode??null,error:body.error??null},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    return body;
   } catch {
     // Non-JSON response body — e.g. a gateway/HTML error page instead of the
     // expected ApiResponse envelope.

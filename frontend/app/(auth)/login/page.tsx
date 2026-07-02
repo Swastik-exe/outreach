@@ -20,7 +20,13 @@ export default function LoginPage() {
     const result = await login({ email, password });
     setLoading(false);
     if (result.error) {
-      setError(result.error);
+      if (result.errorCode === 'EMAIL_NOT_VERIFIED') {
+        setError(
+          'Please verify your email first. Check your inbox or resend the link from the registration email.'
+        );
+      } else {
+        setError(result.error);
+      }
     } else {
       router.push('/dashboard');
     }
@@ -48,6 +54,16 @@ export default function LoginPage() {
               className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400"
             >
               {error}
+              {error.includes('verify your email') && (
+                <p className="mt-2">
+                  <Link
+                    href={`/verify-email?email=${encodeURIComponent(email)}`}
+                    className="text-indigo-400 hover:text-indigo-300"
+                  >
+                    Resend verification email →
+                  </Link>
+                </p>
+              )}
             </div>
           )}
 

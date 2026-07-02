@@ -20,7 +20,7 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  login: (req: LoginRequest) => Promise<{ error?: string }>;
+  login: (req: LoginRequest) => Promise<{ error?: string; errorCode?: string }>;
   register: (req: RegisterRequest) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
 }
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       return {};
     }
-    return { error: res.error ?? 'Login failed' };
+    return { error: res.error ?? 'Login failed', errorCode: res.errorCode };
   }, []);
 
   const register = useCallback(async (req: RegisterRequest) => {
