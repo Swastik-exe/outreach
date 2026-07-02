@@ -23,9 +23,6 @@ function VerifyForm() {
     setStatus('loading');
     setErrorMsg('');
     const res = await api.post('/auth/verify-email', { token: trimmed });
-    // #region agent log
-    fetch('http://127.0.0.1:7803/ingest/1db6d770-9892-4152-aea8-958874f6587b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d0dbd5'},body:JSON.stringify({sessionId:'d0dbd5',location:'verify-email:verifyToken',message:'verify result',data:{success:res.success,errorCode:res.errorCode??null},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-    // #endregion
     if (res.success) {
       setStatus('success');
       setTimeout(() => router.push('/login'), 2000);

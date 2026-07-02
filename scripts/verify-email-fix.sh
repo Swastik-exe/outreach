@@ -3,7 +3,12 @@
 set -uo pipefail
 BASE="${BASE:-https://outreach-u35s.onrender.com/api/v1}"
 EMAIL="probe-$(date +%s)@example.com"
-EXPECTED_TAG="${EXPECTED_TAG:-email-fix-v2}"
+EXPECTED_TAG="${EXPECTED_TAG:-email-fix-v3}"
+
+echo "=== One-click verify redirect (expect 302) ==="
+REDIR=$(curl -sI "$BASE/auth/verify-email?token=invalid-test-token" | head -1)
+echo "$REDIR"
+echo "$REDIR" | grep -qE '302|301' && echo "PASS: verify redirect" || echo "FAIL: no redirect (deploy pending?)"
 
 echo "=== Build tag (expect: $EXPECTED_TAG) ==="
 TAG_RESP=$(curl -sf "$BASE/meta/build" 2>/dev/null || echo "MISSING")

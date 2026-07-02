@@ -8,10 +8,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -43,15 +44,24 @@ public class AuthController {
      * Redirects to login on success, or back to verify page with token on failure.
      */
     @GetMapping("/verify-email")
-    public void verifyEmailFromLink(@RequestParam("token") String token, HttpServletResponse response)
-            throws IOException {
+    public ResponseEntity<Void> verifyEmailFromLink(
+            @RequestParam(value = "token", required = false) String token) {
         String base = frontendUrl.replaceAll("/$", "");
+        if (token == null || token.isBlank()) {
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(base + "/verify-email?error=1"))
+                    .build();
+        }
         try {
             authService.verifyEmail(token);
-            response.sendRedirect(base + "/login?verified=1");
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(base + "/login?verified=1"))
+                    .build();
         } catch (Exception e) {
             String encoded = URLEncoder.encode(token, StandardCharsets.UTF_8);
-            response.sendRedirect(base + "/verify-email?token=" + encoded + "&error=1");
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(base + "/verify-email?token=" + encoded + "&error=1"))
+                    .build();
         }
     }
 

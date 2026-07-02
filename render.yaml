@@ -16,7 +16,7 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: BUILD_TAG
-        value: email-fix-v2
+        value: email-fix-v3
       - key: PUBLIC_API_URL
         value: https://outreach-u35s.onrender.com
       - key: COOKIE_SECURE

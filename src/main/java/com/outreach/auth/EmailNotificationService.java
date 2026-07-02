@@ -10,11 +10,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.time.Duration;
-import java.util.Map;
 
 /**
  * Real email delivery via Resend (https://resend.com).
@@ -30,7 +26,6 @@ import java.util.Map;
 public class EmailNotificationService {
 
     private static final String RESEND_URL = "https://api.resend.com/emails";
-    private static final Path DEBUG_LOG = Path.of("debug-d0dbd5.log");
 
     private final String apiKey;
     private final String fromAddress;
@@ -56,7 +51,6 @@ public class EmailNotificationService {
     }
 
     public void sendVerificationEmail(String email, String rawToken) {
-        // One-click verify via backend — works even if Vercel frontend is stale.
         String link = publicApiUrl + "/api/v1/auth/verify-email?token=" + rawToken;
         String html = """
                 <p>Welcome to Outreach!</p>
@@ -65,7 +59,7 @@ public class EmailNotificationService {
                 <p>If you did not register, ignore this email.</p>
                 """.formatted(link);
         scheduleDelivery(() -> send(email, "Verify your Outreach email", html,
-                "VERIFY TOKEN " + rawToken, "verification"));
+                "VERIFY TOKEN " + rawToken));
     }
 
     public void sendPasswordResetEmail(String email, String rawToken) {
@@ -77,7 +71,7 @@ public class EmailNotificationService {
                 <p>If you did not request this, ignore this email.</p>
                 """.formatted(link);
         scheduleDelivery(() -> send(email, "Reset your Outreach password", html,
-                "RESET TOKEN " + rawToken, "password-reset"));
+                "RESET TOKEN " + rawToken));
     }
 
     public void sendExistingAccountEmail(String email, String rawToken) {
@@ -89,7 +83,7 @@ public class EmailNotificationService {
                 <p>If this wasn't you, ignore this email.</p>
                 """.formatted(link);
         scheduleDelivery(() -> send(email, "Your Outreach account already exists", html,
-                "EXISTING ACCOUNT RESET " + rawToken, "existing-account"));
+                "EXISTING ACCOUNT RESET " + rawToken));
     }
 
     public void sendResendVerificationEmail(String email, String rawToken) {
@@ -98,10 +92,9 @@ public class EmailNotificationService {
 
     public void sendEmail(String to, String subject, String htmlBody) {
         scheduleDelivery(() -> send(to, subject, htmlBody,
-                "EMAIL subject=" + subject + " to=" + to, "generic"));
+                "EMAIL subject=" + subject + " to=" + to));
     }
 
-    /** After DB commit, deliver on a background thread (non-blocking for HTTP). */
     private void scheduleDelivery(Runnable task) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -115,20 +108,9 @@ public class EmailNotificationService {
         }
     }
 
-    private void send(String to, String subject, String htmlBody, String logMarker, String kind) {
-        long start = System.currentTimeMillis();
-        boolean keyPresent = apiKey != null && !apiKey.isBlank();
-        // #region agent log
-        debugLog("H8", "EmailNotificationService.send:start", "email delivery started",
-                Map.of("kind", kind, "keyPresent", keyPresent, "toDomain", to.contains("@") ? to.substring(to.indexOf('@')) : "?"));
-        // #endregion
-
-        if (!keyPresent) {
+    private void send(String to, String subject, String htmlBody, String logMarker) {
+        if (apiKey == null || apiKey.isBlank()) {
             log.info("=== EMAIL (no RESEND_API_KEY — log only): to={} {} ===", to, logMarker);
-            // #region agent log
-            debugLog("H1", "EmailNotificationService.send:no-key", "email not sent — no API key",
-                    Map.of("kind", kind, "ms", System.currentTimeMillis() - start));
-            // #endregion
             return;
         }
         try {
@@ -150,58 +132,18 @@ public class EmailNotificationService {
                     .build();
 
             HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
-            long ms = System.currentTimeMillis() - start;
 
             if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
-                log.info("Email sent via Resend to={} subject={} ms={}", to, subject, ms);
-                // #region agent log
-                debugLog("H8", "EmailNotificationService.send:ok", "resend success",
-                        Map.of("kind", kind, "status", resp.statusCode(), "ms", ms));
-                // #endregion
+                log.info("Email sent via Resend to={} subject={}", to, subject);
             } else {
                 log.warn("Resend returned status={} body={} — falling back to log", resp.statusCode(), resp.body());
                 log.info("=== EMAIL (Resend error): to={} {} ===", to, logMarker);
-                // #region agent log
-                debugLog("H1", "EmailNotificationService.send:resend-error", "resend API error",
-                        Map.of("kind", kind, "status", resp.statusCode(), "ms", ms));
-                // #endregion
             }
         } catch (Exception e) {
             log.warn("Resend call failed ({}), logging email content instead", e.getMessage());
             log.info("=== EMAIL (send failed): to={} {} ===", to, logMarker);
-            // #region agent log
-            debugLog("H1", "EmailNotificationService.send:exception", "resend exception",
-                    Map.of("kind", kind, "error", e.getClass().getSimpleName(), "ms", System.currentTimeMillis() - start));
-            // #endregion
         }
     }
-
-    // #region agent log
-    private static void debugLog(String hypothesisId, String location, String message, Map<String, Object> data) {
-        try {
-            StringBuilder dataJson = new StringBuilder("{");
-            boolean first = true;
-            for (Map.Entry<String, Object> e : data.entrySet()) {
-                if (!first) dataJson.append(',');
-                first = false;
-                dataJson.append('"').append(e.getKey()).append("\":");
-                Object v = e.getValue();
-                if (v instanceof Number || v instanceof Boolean) {
-                    dataJson.append(v);
-                } else {
-                    dataJson.append('"').append(String.valueOf(v).replace("\"", "\\\"")).append('"');
-                }
-            }
-            dataJson.append('}');
-            String line = "{\"sessionId\":\"d0dbd5\",\"hypothesisId\":\"" + hypothesisId
-                    + "\",\"location\":\"" + location + "\",\"message\":\"" + message
-                    + "\",\"data\":" + dataJson + ",\"timestamp\":" + System.currentTimeMillis() + "}";
-            Files.writeString(DEBUG_LOG, line + "\n", StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-        } catch (Exception ignored) {
-            // debug-only
-        }
-    }
-    // #endregion
 
     private static String jsonString(String value) {
         return "\"" + value

@@ -93,3 +93,16 @@ grep -r TODO src/ frontend/ --include='*.java' --include='*.ts' --include='*.tsx
 ## Deferred
 
 - **Priority 6 (UI/UX polish)** — user will redesign with Claude separately.
+
+## Production audit (Jul 2, 2026)
+
+| Check | Status |
+|-------|--------|
+| `smoke-prod.sh` (6 checks) | PASS |
+| `EMAIL_NOT_VERIFIED` on login | PASS (live) |
+| Register latency | ~2.5–3s warm (was 9–15s) |
+| One-click email verify (`GET /auth/verify-email`) | Deployed in `email-fix-v3` |
+| Debug instrumentation | Removed in final cleanup |
+| `RESEND_API_KEY` on Render | **You must confirm** — emails fail silently without it |
+
+**Honest score: ~9/10 engineering** for free-tier MVP. Not claiming 10/10 until: Render paid tier or accept cold starts, full E2E suite, Resend verified domain, UI/UX redesign.

@@ -16,7 +16,7 @@ RUN chmod +x mvnw && ./mvnw -B dependency:go-offline
 # unchanged to a shallow cache check. Normal content changes already
 # invalidate COPY's cache correctly on their own; this is a manual escape
 # hatch, not the primary caching mechanism.
-ARG CACHEBUST=4
+ARG CACHEBUST=5
 COPY src/ src/
 RUN ./mvnw -B clean package -DskipTests
 
