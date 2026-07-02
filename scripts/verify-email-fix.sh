@@ -1,26 +1,27 @@
 #!/usr/bin/env bash
+# Quick probe: is the email-fix backend live on Render?
 set -uo pipefail
 BASE="${BASE:-https://outreach-u35s.onrender.com/api/v1}"
-EMAIL="postfix-$(date +%s)@example.com"
+EMAIL="probe-$(date +%s)@example.com"
+EXPECTED_TAG="${EXPECTED_TAG:-email-fix-v1}"
 
-echo "=== 1. Register new user ==="
-curl -s -w "time_total=%{time_total}s\n" -X POST "$BASE/auth/register" \
-  -H 'Content-Type: application/json' \
-  -d "{\"email\":\"$EMAIL\",\"password\":\"TestPass123!\"}" | head -c 200
+echo "=== Build tag (expect: $EXPECTED_TAG) ==="
+TAG_RESP=$(curl -sf "$BASE/meta/build" 2>/dev/null || echo "MISSING")
+echo "$TAG_RESP"
+if echo "$TAG_RESP" | grep -q "$EXPECTED_TAG"; then
+  echo "PASS: new backend is live"
+else
+  echo "FAIL: old backend still running — Manual Deploy required on Render"
+fi
+
 echo ""
-
-echo "=== 2. Login unverified ==="
-curl -s -w "time_total=%{time_total}s\n" -X POST "$BASE/auth/login" \
+echo "=== Register ==="
+curl -s -w "\ntime_total=%{time_total}s http=%{http_code}\n" -X POST "$BASE/auth/register" \
   -H 'Content-Type: application/json' \
-  -d "{\"email\":\"$EMAIL\",\"password\":\"TestPass123!\"}"
+  -d "{\"email\":\"$EMAIL\",\"password\":\"TestPass123!\"}" | head -c 300
 
 echo ""
-echo "=== 3. Second register (warm server) ==="
-EMAIL2="postfix2-$(date +%s)@example.com"
-curl -s -w "time_total=%{time_total}s\n" -X POST "$BASE/auth/register" \
+echo "=== Login unverified (expect EMAIL_NOT_VERIFIED) ==="
+curl -s -w "\ntime_total=%{time_total}s\n" -X POST "$BASE/auth/login" \
   -H 'Content-Type: application/json' \
-  -d "{\"email\":\"$EMAIL2\",\"password\":\"TestPass123!\"}" | head -c 100
-echo ""
-
-echo "=== 4. Frontend register copy ==="
-curl -s https://outreach-iota-ruddy.vercel.app/register | grep -oE 'server logs|check spam|Open the link' | head -5
+  -d "{\"email\":\"$EMAIL\",\"password\":\"TestPass123!\"}" | head -c 400
