@@ -26,7 +26,7 @@ export default function TrackerPage() {
     const [appsRes, followRes, draftsRes] = await Promise.all([
       api.get<SpringPage<ApplicationResponse>>('/applications?page=0&size=100'),
       api.get<SpringPage<ApplicationResponse>>('/applications/follow-ups?page=0&size=50'),
-      api.get<InboundDraftResponse[]>('/inbound-email/drafts'),
+      api.get<SpringPage<InboundDraftResponse>>('/inbound-email/drafts?page=0&size=50'),
     ]);
 
     if (!appsRes.success) {
@@ -37,7 +37,7 @@ export default function TrackerPage() {
 
     setApps(pageContent(appsRes.data));
     setFollowUps(followRes.success ? pageContent(followRes.data) : []);
-    setDrafts(draftsRes.success ? draftsRes.data ?? [] : []);
+    setDrafts(draftsRes.success ? pageContent(draftsRes.data) : []);
     setLoading(false);
   }, []);
 

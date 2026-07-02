@@ -9,6 +9,8 @@ import com.outreach.tracker.inbound.dto.ConfirmDraftRequest;
 import com.outreach.tracker.inbound.dto.InboundDraftResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,9 +33,10 @@ public class InboundEmailDraftService {
     // ── List pending drafts ───────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
-    public List<InboundDraftResponse> listPending(UUID userId) {
-        return draftRepo.findByUserIdAndStatus(userId, "pending_confirm")
-                .stream().map(this::toResponse).toList();
+    public Page<InboundDraftResponse> listPending(UUID userId, Pageable pageable) {
+        return draftRepo.findByUserIdAndStatusOrderByCreatedAtDesc(
+                        userId, "pending_confirm", pageable)
+                .map(this::toResponse);
     }
 
     // ── Confirm draft → create application ───────────────────────────────────

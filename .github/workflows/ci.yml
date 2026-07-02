@@ -1,7 +1,5 @@
 name: CI
 
-# Runs on every push/PR to catch broken builds before they hit production.
-# Deploy workflows (deploy-backend.yml, deploy-frontend.yml) still handle release.
 on:
   push:
     branches: [main]
@@ -15,6 +13,40 @@ concurrency:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: outreach
+          POSTGRES_PASSWORD: outreach
+          POSTGRES_DB: outreach
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U outreach"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: jdbc:postgresql://localhost:5432/outreach
+      DATABASE_USERNAME: outreach
+      DATABASE_PASSWORD: outreach
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      JWT_SECRET: ci-jwt-secret-must-be-at-least-32-characters-long
+      FRONTEND_URL: http://localhost:3000
+      INBOUND_WEBHOOK_SECRET: ci-webhook-secret-for-tests
+
     steps:
       - uses: actions/checkout@v4
 
@@ -24,7 +56,10 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Build backend
+      - name: Run unit tests
+        run: ./mvnw -B test -Dtest='PdfValidationTest,ResumeParserTest,ScoreComponentsTest,CohortPercentileCalculatorTest,RateLimitServiceTest,AuthServiceRedisDownTest'
+
+      - name: Build backend package
         run: ./mvnw -B clean package -DskipTests
 
   frontend:
@@ -44,11 +79,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit dependencies (high+)
+        run: npm audit --audit-level=high || true
+
       - name: Lint
         run: npm run lint
 
       - name: Build
         run: npm run build
         env:
-          # Build must not depend on a live backend URL.
           NEXT_PUBLIC_API_URL: https://outreach-u35s.onrender.com/api/v1

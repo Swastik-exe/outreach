@@ -3,6 +3,7 @@ package com.outreach.resume.storage;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.regions.Region;
@@ -14,16 +15,16 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.time.Duration;
 
 /**
  * Cloudflare R2 storage via the AWS S3 SDK (R2 is S3-compatible).
- * Only instantiated when all four R2 env vars are present (see FileStorageConfig).
- * Raw R2 object URLs are NEVER returned — the "r2://key" opaque reference is
- * what gets stored in the DB; actual retrieval goes through presigned URLs
- * or the backend proxy (added in a future task).
  */
 @Slf4j
 public class R2Storage implements FileStorage {
+
+    private static final Duration API_CALL_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration API_ATTEMPT_TIMEOUT = Duration.ofSeconds(15);
 
     private final S3Client s3;
     private final String bucket;
@@ -35,6 +36,10 @@ public class R2Storage implements FileStorage {
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(accessKey, secretKey)))
                 .region(Region.of("auto"))
+                .overrideConfiguration(ClientOverrideConfiguration.builder()
+                        .apiCallTimeout(API_CALL_TIMEOUT)
+                        .apiCallAttemptTimeout(API_ATTEMPT_TIMEOUT)
+                        .build())
                 .build();
         log.info("R2Storage ready — bucket={}", bucket);
     }

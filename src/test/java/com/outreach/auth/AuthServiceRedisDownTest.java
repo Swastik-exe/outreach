@@ -1,5 +1,6 @@
 package com.outreach.auth;
 
+import com.outreach.admin.AuditEventService;
 import com.outreach.auth.dto.LoginRequest;
 import com.outreach.auth.dto.RegisterRequest;
 import com.outreach.billing.PlanTier;
@@ -31,6 +32,7 @@ class AuthServiceRedisDownTest {
     @Mock private TokenHasher tokenHasher;
     @Mock private RateLimitService rateLimitService;
     @Mock private EmailNotificationService emailService;
+    @Mock private AuditEventService auditEventService;
 
     private AuthService authService;
 
@@ -38,7 +40,8 @@ class AuthServiceRedisDownTest {
     void setUp() {
         authService = new AuthService(
                 userRepository, sessionRepository, evtRepository, prtRepository,
-                passwordEncoder, jwtService, tokenHasher, rateLimitService, emailService);
+                passwordEncoder, jwtService, tokenHasher, rateLimitService, emailService,
+                auditEventService);
         ReflectionTestUtils.setField(authService, "refreshTokenExpiryDays", 7);
         ReflectionTestUtils.setField(authService, "cookieSecure", false);
     }

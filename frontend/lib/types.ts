@@ -3,6 +3,8 @@ export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+  /** Machine-readable code — branch on this, not {@link error} text. */
+  errorCode?: string;
   meta?: { timestamp: string };
 }
 

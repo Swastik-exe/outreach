@@ -4,9 +4,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api, apiUpload } from '@/lib/api';
+import { pageContent } from '@/lib/page';
 import { cn } from '@/lib/utils';
 import { VortexLoader } from '@/components/VortexLoader';
-import type { ResumeResponse, ResumeStatusResponse, UploadResponse } from '@/lib/types';
+import type { ResumeResponse, ResumeStatusResponse, SpringPage, UploadResponse } from '@/lib/types';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -257,9 +258,9 @@ export default function ResumePage() {
   const msgRef = useRef(0);
 
   const load = useCallback(async () => {
-    const res = await api.get<ResumeResponse[]>('/resumes');
+    const res = await api.get<SpringPage<ResumeResponse>>('/resumes?page=0&size=100');
     if (res.success && res.data) {
-      setResumes(res.data);
+      setResumes(pageContent(res.data));
     } else {
       setError(res.error ?? 'Could not load resumes.');
     }

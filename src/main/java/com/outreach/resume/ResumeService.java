@@ -1,5 +1,7 @@
 package com.outreach.resume;
 
+import com.outreach.admin.AuditEventService;
+import com.outreach.common.PdfValidation;
 import com.outreach.common.exception.BadRequestException;
 import com.outreach.common.exception.ForbiddenException;
 import com.outreach.common.exception.NotFoundException;
@@ -11,6 +13,8 @@ import com.outreach.user.User;
 import com.outreach.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -36,6 +40,7 @@ public class ResumeService {
     private final FileStorage            fileStorage;
     private final ResumeParser           resumeParser;
     private final ResumeAnalysisService  analysisService;
+    private final AuditEventService      auditEventService;
 
     // -------------------------------------------------------------------------
     // Upload
@@ -65,6 +70,7 @@ public class ResumeService {
         byte[] bytes;
         try {
             bytes = file.getBytes();
+            PdfValidation.requirePdfMagicBytes(bytes);
             fileUrl = fileStorage.store(key, bytes, PDF_TYPE);
         } catch (IOException e) {
             throw new RuntimeException("Failed to store resume file", e);
@@ -123,6 +129,11 @@ public class ResumeService {
             }
         });
 
+        auditEventService.record(userId, AuditEventService.RESUME_UPLOAD, java.util.Map.of(
+                "resumeId", resume.getId().toString(),
+                "fileName", resume.getFileName() != null ? resume.getFileName() : "",
+                "sizeBytes", file.getSize()));
+
         return new UploadResponse(resume.getId(), resume.getFileName(),
                 "processing", "Resume uploaded and queued for analysis");
     }
@@ -132,9 +143,9 @@ public class ResumeService {
     // -------------------------------------------------------------------------
 
     @Transactional(readOnly = true)
-    public List<ResumeResponse> listForUser(UUID userId) {
-        return resumeRepo.findByUserIdOrderByCreatedAtDesc(userId)
-                .stream().map(this::toResponse).toList();
+    public org.springframework.data.domain.Page<ResumeResponse> listForUser(UUID userId, Pageable pageable) {
+        return resumeRepo.findByUserIdOrderByCreatedAtDesc(userId, pageable)
+                .map(this::toResponse);
     }
 
     @Transactional(readOnly = true)

@@ -5,6 +5,7 @@ import com.outreach.admin.dto.AdminStatsResponse;
 import com.outreach.ai.AiInteractionRepository;
 import com.outreach.billing.PaymentEventRepository;
 import com.outreach.billing.SubscriptionRepository;
+import com.outreach.admin.AuditEventService;
 import com.outreach.common.exception.NotFoundException;
 import com.outreach.feedback.Feedback;
 import com.outreach.feedback.FeedbackRepository;
@@ -39,6 +40,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final DataSource dataSource;
     private final RedisConnectionFactory redisConnectionFactory;
+    private final AuditEventService auditEventService;
 
     @Transactional(readOnly = true)
     public AdminStatsResponse getStats(UUID adminUserId) {
@@ -82,6 +84,9 @@ public class AdminService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
         target.setIsSuspended(true);
         userRepository.save(target);
+        auditEventService.record(adminUserId, AuditEventService.USER_SUSPENDED, java.util.Map.of(
+                "targetUserId", targetUserId.toString(),
+                "targetEmail", target.getEmail()));
     }
 
     private AdminFeedbackItem toAdminItem(Feedback fb) {

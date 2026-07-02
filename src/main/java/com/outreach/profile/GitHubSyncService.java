@@ -2,9 +2,12 @@ package com.outreach.profile;
 
 import com.outreach.common.exception.BadRequestException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+
+import java.time.Duration;
 
 /**
  * Fetches public GitHub user data via GitHub REST API v3.
@@ -15,11 +18,19 @@ import org.springframework.web.client.RestClientException;
 @Service
 public class GitHubSyncService {
 
-    private final RestClient restClient = RestClient.builder()
-            .baseUrl("https://api.github.com")
-            .defaultHeader("Accept", "application/vnd.github.v3+json")
-            .defaultHeader("User-Agent", "outreach-app/1.0")
-            .build();
+    private final RestClient restClient;
+
+    public GitHubSyncService() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofSeconds(10));
+        factory.setReadTimeout(Duration.ofSeconds(15));
+        this.restClient = RestClient.builder()
+                .baseUrl("https://api.github.com")
+                .defaultHeader("Accept", "application/vnd.github.v3+json")
+                .defaultHeader("User-Agent", "outreach-app/1.0")
+                .requestFactory(factory)
+                .build();
+    }
 
     /**
      * Fetches the raw JSON payload for a GitHub username.

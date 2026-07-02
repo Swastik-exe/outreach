@@ -39,6 +39,12 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Prometheus metrics export -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
         <!-- Sentry (no-op when SENTRY_DSN unset) -->
         <dependency>
             <groupId>io.sentry</groupId>

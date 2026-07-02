@@ -1,5 +1,7 @@
 package com.outreach.tracker.inbound;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +17,9 @@ import java.util.UUID;
 public interface InboundEmailDraftRepository extends JpaRepository<InboundEmailDraft, UUID> {
 
     List<InboundEmailDraft> findByUserIdAndStatus(UUID userId, String status);
+
+    Page<InboundEmailDraft> findByUserIdAndStatusOrderByCreatedAtDesc(
+            UUID userId, String status, Pageable pageable);
     List<InboundEmailDraft> findByUserId(UUID userId);
     Optional<InboundEmailDraft> findByIdAndUserId(UUID id, UUID userId);
 

@@ -5,7 +5,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-echo "=== Backend (Maven) ==="
+echo "=== Backend unit tests ==="
+./mvnw -B test -Dtest='PdfValidationTest,ResumeParserTest,ScoreComponentsTest,CohortPercentileCalculatorTest,RateLimitServiceTest,AuthServiceRedisDownTest'
+
+echo ""
+echo "=== Backend package ==="
 ./mvnw -B clean package -DskipTests
 
 echo ""

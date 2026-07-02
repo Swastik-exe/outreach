@@ -1,8 +1,10 @@
 package com.outreach.auth;
 
 import com.outreach.admin.AdminAuthService;
+import com.outreach.admin.AuditEventService;
 import com.outreach.auth.dto.*;
 import com.outreach.billing.PlanTier;
+import com.outreach.common.ApiErrorCode;
 import com.outreach.common.exception.*;
 import com.outreach.user.User;
 import com.outreach.user.UserRepository;
@@ -35,6 +37,7 @@ public class AuthService {
     private final TokenHasher tokenHasher;
     private final RateLimitService rateLimitService;
     private final EmailNotificationService emailService;
+    private final AuditEventService auditEventService;
 
     @Value("${app.jwt.refresh-token-expiry-days}")
     private int refreshTokenExpiryDays;
@@ -126,14 +129,21 @@ public class AuthService {
         }
 
         if (Boolean.TRUE.equals(user.getIsSuspended())) {
-            throw new ForbiddenException("Account suspended. Contact support.");
+            throw new AppException(
+                    "Account suspended. Contact support.",
+                    org.springframework.http.HttpStatus.FORBIDDEN,
+                    ApiErrorCode.ACCOUNT_SUSPENDED);
         }
 
         rateLimitService.resetLoginRateLimit(req.getEmail(), ip);
         user.setLastActiveAt(OffsetDateTime.now());
         userRepository.save(user);
 
-        return createSessionAndTokens(user, ip, response);
+        TokenResponse tokens = createSessionAndTokens(user, ip, response);
+        auditEventService.record(user.getId(), AuditEventService.LOGIN, java.util.Map.of(
+                "method", "password",
+                "ip", ip != null ? ip : "unknown"));
+        return tokens;
     }
 
     // ── REFRESH ───────────────────────────────────────────────────────────────
