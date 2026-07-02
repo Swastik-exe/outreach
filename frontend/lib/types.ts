@@ -35,6 +35,15 @@ export interface RegisterRequest {
   password: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
 // ── Career score ─────────────────────────────────────────────────────────────
 // Field names match Jackson JSON output: boolean isStale → serialized as "stale"
 export interface CareerScoreResponse {

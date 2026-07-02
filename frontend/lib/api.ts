@@ -68,11 +68,18 @@ export async function apiFetch<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...fetchOptions,
-    credentials: 'include',
-    headers,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      ...fetchOptions,
+      credentials: 'include',
+      headers,
+    });
+  } catch {
+    // Network failure — offline, DNS/CORS error, or the connection dropped
+    // mid-request (e.g. a Render free-tier cold-start gateway timeout).
+    return { success: false, error: 'Network error, please try again.' };
+  }
 
   // 401 → try refresh once (skip retry for auth endpoints to avoid loops)
   if (res.status === 401 && !_isRetry && !path.startsWith('/auth/')) {
@@ -88,8 +95,13 @@ export async function apiFetch<T>(
     return { success: false, error: 'Session expired. Please log in again.' };
   }
 
-  const body = await res.json() as ApiResponse<T>;
-  return body;
+  try {
+    return await res.json() as ApiResponse<T>;
+  } catch {
+    // Non-JSON response body — e.g. a gateway/HTML error page instead of the
+    // expected ApiResponse envelope.
+    return { success: false, error: 'Network error, please try again.' };
+  }
 }
 
 // ── Multipart upload helper ───────────────────────────────────────────────────
@@ -106,12 +118,19 @@ export async function apiUpload<T>(
   const headers: Record<string, string> = {};
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method: 'POST',
-    headers,
-    body: formData,
-    credentials: 'include',
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      credentials: 'include',
+    });
+  } catch {
+    // Network failure — offline, DNS/CORS error, or the connection dropped
+    // mid-request (e.g. a Render free-tier cold-start gateway timeout).
+    return { success: false, error: 'Network error, please try again.' };
+  }
 
   if (res.status === 401 && !retried) {
     const refreshed = await tryRefresh();
@@ -123,7 +142,13 @@ export async function apiUpload<T>(
     return { success: false, error: 'Session expired. Please log in again.' };
   }
 
-  return res.json() as Promise<ApiResponse<T>>;
+  try {
+    return await res.json() as ApiResponse<T>;
+  } catch {
+    // Non-JSON response body — e.g. a gateway/HTML error page instead of the
+    // expected ApiResponse envelope.
+    return { success: false, error: 'Network error, please try again.' };
+  }
 }
 
 // ── Typed convenience methods ─────────────────────────────────────────────────

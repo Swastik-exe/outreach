@@ -59,10 +59,10 @@ function VerifyForm() {
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
                 className="w-full rounded-lg bg-[#1A1D24] border border-[#2A2D36] px-3 py-2.5 text-sm text-[#F4F5F7] placeholder-[#4B4F63] focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono min-h-[44px]"
-                placeholder="Paste token from email / server log"
+                placeholder="Paste your verification token"
               />
               <p className="text-xs text-[#4B4F63]">
-                Check the backend logs: grep &quot;VERIFY TOKEN&quot;
+                Check your inbox for the verification link, or paste the token here.
               </p>
             </div>
             <button
