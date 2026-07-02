@@ -114,4 +114,30 @@ class AuthServiceRedisDownTest {
         verify(emailService).sendVerificationEmail(eq("new@example.com"), eq("verify-raw"));
         verify(emailService, never()).sendExistingAccountEmail(anyString(), anyString());
     }
+
+    @Test
+    void login_unverifiedEmailRejected() {
+        doNothing().when(rateLimitService).checkLoginRateLimit(anyString(), anyString());
+
+        User user = User.builder()
+                .email("new@example.com")
+                .passwordHash("hash")
+                .authProvider(AuthProvider.local)
+                .isEmailVerified(false)
+                .planTier(PlanTier.free)
+                .isSuspended(false)
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
+        when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("Pass123!", "hash")).thenReturn(true);
+
+        LoginRequest loginReq = new LoginRequest();
+        loginReq.setEmail("new@example.com");
+        loginReq.setPassword("Pass123!");
+
+        var ex = assertThrows(com.outreach.common.exception.AppException.class, () ->
+                authService.login(loginReq, "127.0.0.1", mock(jakarta.servlet.http.HttpServletResponse.class)));
+        assertEquals(com.outreach.common.ApiErrorCode.EMAIL_NOT_VERIFIED, ex.getErrorCode());
+    }
 }
