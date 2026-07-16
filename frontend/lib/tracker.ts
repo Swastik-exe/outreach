@@ -1,5 +1,3 @@
-import type { ApplicationResponse } from './types';
-
 /** All app_status values from the backend enum. */
 export const APP_STATUSES = [
   'applied',
@@ -29,7 +27,7 @@ export const TERMINAL_STATUSES = new Set<AppStatus>([
 ]);
 
 /** Journey-stage badge colours — never error red for normal statuses. */
-export const STATUS_META: Record<
+const STATUS_META: Record<
   string,
   { label: string; color: string; bg: string; ring: string }
 > = {
@@ -149,10 +147,6 @@ export function fmtDateTime(iso: string | null | undefined) {
     hour: '2-digit',
     minute: '2-digit',
   });
-}
-
-export function isFollowUpDue(app: ApplicationResponse, followUpIds: Set<string>) {
-  return followUpIds.has(app.id);
 }
 
 export const OUTCOME_OPTIONS = [

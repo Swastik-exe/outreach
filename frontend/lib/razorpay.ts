@@ -8,18 +8,18 @@ const SCRIPT_URL = 'https://checkout.razorpay.com/v1/checkout.js';
 
 let scriptPromise: Promise<void> | null = null;
 
-export function loadRazorpayScript(): Promise<void> {
+function loadRazorpayScript(): Promise<void> {
   if (typeof window === 'undefined') return Promise.resolve();
   if (window.Razorpay) return Promise.resolve();
   if (scriptPromise) return scriptPromise;
 
   scriptPromise = new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = SCRIPT_URL;
-    s.async = true;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error('Failed to load Razorpay checkout'));
-    document.body.appendChild(s);
+    const script = document.createElement('script');
+    script.src = SCRIPT_URL;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Razorpay checkout'));
+    document.body.appendChild(script);
   });
   return scriptPromise;
 }
@@ -36,24 +36,24 @@ export interface RazorpayOpenOptions {
   onDismiss?: () => void;
 }
 
-export async function openRazorpayCheckout(opts: RazorpayOpenOptions): Promise<void> {
+export async function openRazorpayCheckout(checkout: RazorpayOpenOptions): Promise<void> {
   await loadRazorpayScript();
   if (!window.Razorpay) throw new Error('Razorpay not available');
 
-  const options: Record<string, unknown> = {
-    key: opts.key,
-    amount: opts.amountInr * 100,
-    currency: opts.currency,
+  const razorpayOptions: Record<string, unknown> = {
+    key: checkout.key,
+    amount: checkout.amountInr * 100,
+    currency: checkout.currency,
     name: 'Outreach',
     description: 'Career platform subscription',
-    prefill: { email: opts.email, name: opts.name ?? 'Outreach User' },
+    prefill: { email: checkout.email, name: checkout.name ?? 'Outreach User' },
     theme: { color: '#7C3AED' },
-    handler: () => opts.onSuccess(),
-    modal: { ondismiss: () => opts.onDismiss?.() },
+    handler: () => checkout.onSuccess(),
+    modal: { ondismiss: () => checkout.onDismiss?.() },
   };
 
-  if (opts.orderId) options.order_id = opts.orderId;
-  if (opts.subscriptionId) options.subscription_id = opts.subscriptionId;
+  if (checkout.orderId) razorpayOptions.order_id = checkout.orderId;
+  if (checkout.subscriptionId) razorpayOptions.subscription_id = checkout.subscriptionId;
 
-  new window.Razorpay(options).open();
+  new window.Razorpay(razorpayOptions).open();
 }

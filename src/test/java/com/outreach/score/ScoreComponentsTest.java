@@ -401,8 +401,6 @@ class ScoreComponentsTest {
         int realTotal = ScoreComponents.computeOverall(true,
                 realResumeR, realAppsR, realSkillsR, realProfileR, realGithub, realCgpa);
 
-        System.out.printf("Gamed profile: %d pts | Real profile: %d pts%n", gamedTotal, realTotal);
-
         assertTrue(gamedTotal < realTotal,
                 "Gamed profile (%d) must score LOWER than real progressed profile (%d)"
                         .formatted(gamedTotal, realTotal));

@@ -45,7 +45,7 @@ async function tryRefresh(): Promise<boolean> {
 }
 
 // ── Core fetch wrapper ────────────────────────────────────────────────────────
-export async function apiFetch<T>(
+async function apiFetch<T>(
   path: string,
   options: RequestInit & { _isRetry?: boolean } = {}
 ): Promise<ApiResponse<T>> {

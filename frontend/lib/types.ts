@@ -152,7 +152,7 @@ export function parseFixes(raw: string | null): string[] {
 }
 
 // ── Score band colours (match design-reference Dashboard.dc.html) ─────────────
-export const BAND_META: Record<
+const BAND_META: Record<
   string,
   { color: string; accent: string; text: string; bg: string; chipBg: string; chipBd: string }
 > = {
@@ -304,10 +304,6 @@ export interface ForwardingAddressResponse {
 }
 
 // ── Billing ───────────────────────────────────────────────────────────────────
-export interface CheckoutRequest {
-  plan: 'monthly' | 'annual' | 'seasonPass';
-}
-
 export interface CheckoutResponse {
   razorpayKeyId: string;
   orderId: string | null;
@@ -319,7 +315,7 @@ export interface CheckoutResponse {
   prefillEmail: string;
 }
 
-export interface UsageMetricResponse {
+interface UsageMetricResponse {
   metric: string;
   used: number;
   limit: number;
@@ -337,12 +333,7 @@ export interface SubscriptionInfoResponse {
   usage: UsageMetricResponse[];
 }
 
-export interface UsageResponse {
-  planTier: string;
-  metrics: UsageMetricResponse[];
-}
-
-export interface PricingTier {
+interface PricingTier {
   amountInr: number;
   label: string;
   oneTime: boolean;

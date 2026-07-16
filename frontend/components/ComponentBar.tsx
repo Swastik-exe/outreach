@@ -214,4 +214,4 @@ export function deriveComponentTag(
   return { label: 'Room to grow', color: '#64748B' };
 }
 
-export { BAR_COLORS, COMPONENT_LABELS };
+export { BAR_COLORS };

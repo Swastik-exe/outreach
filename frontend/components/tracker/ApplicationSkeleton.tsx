@@ -39,16 +39,3 @@ export function ApplicationListSkeleton({ count = 5 }: { count?: number }) {
     </section>
   );
 }
-
-export function DraftSkeleton() {
-  return (
-    <div
-      className="rounded-[14px] border border-border bg-card p-5"
-      aria-hidden="true"
-    >
-      <div className="skeleton-shimmer mb-2 h-4 w-1/2 rounded-md" />
-      <div className="skeleton-shimmer mb-4 h-3 w-1/3 rounded-md" />
-      <div className="skeleton-shimmer h-9 w-full rounded-[10px]" />
-    </div>
-  );
-}

@@ -187,10 +187,6 @@ public class ResumeService {
         resumeRepo.save(resume);
     }
 
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
     private Resume findOwned(UUID resumeId, UUID userId) {
         Resume resume = resumeRepo.findById(resumeId)
                 .orElseThrow(() -> new NotFoundException("Resume not found"));
@@ -200,24 +196,24 @@ public class ResumeService {
         return resume;
     }
 
-    private ResumeResponse toResponse(Resume r) {
+    private ResumeResponse toResponse(Resume resume) {
         return new ResumeResponse(
-                r.getId(),
-                r.getTitle(),
-                r.getVersion(),
-                r.getFileName(),
-                r.getTargetRole(),
-                r.getReadinessScore(),
-                r.getKeywordScore(),
-                r.getImpactScore(),
-                r.getFormattingScore(),
-                r.getKeywordGaps() != null ? Arrays.asList(r.getKeywordGaps()) : List.of(),
-                r.getAiFixes(),
-                r.getAnalysisStatus(),
-                r.getAnalysisSource(),
-                Boolean.TRUE.equals(r.getIsActive()),
-                r.getCreatedAt(),
-                r.getAnalyzedAt()
+                resume.getId(),
+                resume.getTitle(),
+                resume.getVersion(),
+                resume.getFileName(),
+                resume.getTargetRole(),
+                resume.getReadinessScore(),
+                resume.getKeywordScore(),
+                resume.getImpactScore(),
+                resume.getFormattingScore(),
+                resume.getKeywordGaps() != null ? Arrays.asList(resume.getKeywordGaps()) : List.of(),
+                resume.getAiFixes(),
+                resume.getAnalysisStatus(),
+                resume.getAnalysisSource(),
+                Boolean.TRUE.equals(resume.getIsActive()),
+                resume.getCreatedAt(),
+                resume.getAnalyzedAt()
         );
     }
 
