@@ -81,11 +81,12 @@ curl https://outreach-u35s.onrender.com/actuator/health
 
 ## UI/UX changes
 
-**Stage 2 (visual redesign) is pending** — user will provide a Claude design brief. Until then:
+**Stage 2 (Claude design restyle) is live on `main`** — tokens, SideNav/TabBar shell, and screen visuals match `design-reference/`.
 
-- Do **not** start broad visual/token refactors unless explicitly asked
-- P0 functional fixes (error handling, dead links, missing pages) are done on `main`
-- When redesign lands: migrate hardcoded hex (`bg-[#111318]`) → semantic tokens (`bg-surface`), add `font-space` to all headings, unify button styles
+- Keep visual changes aligned with design-reference hex/spacing; do not reintroduce indigo/`#0A0B0E`
+- Prefer semantic tokens (`bg-bg`, `bg-card`, `border-border`, `text-primary`, `font-space`)
+- Avoid `backdrop-blur` on sticky/fixed chrome (scroll jank on mobile)
+- When redesigning further: match design HTML inline styles exactly; visual layer only unless asked
 
 ## Agent defaults
 

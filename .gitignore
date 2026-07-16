@@ -48,6 +48,9 @@ spring.log
 .do-commit*.sh
 .tmp-*
 
+# Design kit export (local visual source of truth — not shipped)
+/design-reference/
+
 # JVM crash logs
 hs_err_pid*
 replay_pid*
