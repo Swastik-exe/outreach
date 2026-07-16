@@ -60,6 +60,8 @@ export function TabBar() {
             aria-current={isOn ? 'page' : undefined}
             className={cn(
               'flex-1 flex flex-col items-center justify-center gap-[3px] min-h-12 no-underline rounded-[10px] relative overflow-hidden transition-colors duration-150',
+              'active:bg-row-hover',
+              isOn && 'bg-primary/10',
             )}
           >
             <svg

@@ -122,7 +122,7 @@ export default function Home() {
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center h-[38px] px-[15px] rounded-[9px] bg-primary text-white text-[13.5px] font-semibold no-underline ml-1.5 whitespace-nowrap hover:bg-primary-hover active:bg-primary-active transition-colors"
+              className="inline-flex items-center min-h-11 px-[15px] rounded-[9px] bg-primary text-white text-[13.5px] font-semibold no-underline ml-1.5 whitespace-nowrap hover:bg-primary-hover active:bg-primary-active transition-colors"
             >
               Get started
             </Link>
@@ -237,7 +237,7 @@ export default function Home() {
               </div>
               <Link
                 href="/register"
-                className="inline-flex items-center h-12 px-[22px] rounded-[11px] bg-primary text-white text-[15px] font-semibold no-underline whitespace-nowrap hover:bg-primary-hover transition-colors"
+                className="inline-flex items-center h-12 px-[22px] rounded-[11px] bg-primary text-white text-[15px] font-semibold no-underline whitespace-nowrap hover:bg-primary-hover active:bg-primary-active transition-colors"
               >
                 Get started free
               </Link>

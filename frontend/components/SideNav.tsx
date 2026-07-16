@@ -78,7 +78,7 @@ function NavLink({
       href={href}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'relative flex items-center gap-[11px] h-10 px-2.5 my-px rounded-[9px] text-sm font-medium no-underline overflow-hidden transition-colors duration-150',
+        'relative flex items-center gap-[11px] h-10 px-2.5 my-px rounded-[9px] text-sm font-medium no-underline overflow-hidden transition-colors duration-150 active:bg-inner',
         active
           ? 'bg-card text-text'
           : 'bg-transparent text-muted hover:text-text hover:bg-card',

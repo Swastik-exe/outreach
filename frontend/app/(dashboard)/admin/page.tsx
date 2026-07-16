@@ -150,7 +150,7 @@ export default function AdminPage() {
       <div className="flex items-baseline gap-3 flex-wrap">
         <h1 className="font-space font-semibold text-xl m-0">Today</h1>
         <span className="text-[12.5px] text-dim">
-          {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })} · refreshes every 5 min
+          {new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })} · refreshes every 5 min
         </span>
       </div>
 
@@ -210,7 +210,7 @@ export default function AdminPage() {
               const meta = [
                 fb.userEmail ?? 'anonymous',
                 fb.screen ?? '—',
-                new Date(fb.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+                new Date(fb.createdAt).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
               ].join(' · ');
               return (
                 <div

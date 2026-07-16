@@ -181,6 +181,9 @@ export default function PricingPage() {
         <p className="mt-2.5 text-[12.5px] text-dim">
           Launch pricing — we&apos;re still tuning it with real users. If it changes, existing plans keep their price.
         </p>
+        <p className="mt-1.5 text-[12.5px] text-dim">
+          Prices in INR (Indian Rupees). Checkout currently runs through Razorpay.
+        </p>
       </header>
 
       {error && (

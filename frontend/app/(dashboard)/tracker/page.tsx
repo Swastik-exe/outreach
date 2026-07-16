@@ -286,8 +286,9 @@ function FilterChip({
       aria-selected={active}
       onClick={onClick}
       className={cn(
-        'inline-flex h-9 items-center rounded-full px-3.5 text-[13px] font-semibold whitespace-nowrap transition-colors',
+        'inline-flex min-h-11 items-center rounded-full px-3.5 text-[13px] font-semibold whitespace-nowrap transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+        'active:bg-inner',
         active
           ? 'border border-primary-lt/45 bg-primary/15 text-[#C4B5FD]'
           : 'border border-border bg-transparent text-muted hover:border-hover-border',
@@ -322,6 +323,6 @@ function PlusIcon() {
 const btnPrimary = cn(
   'inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-[10px] px-[18px]',
   'text-sm font-semibold text-white bg-primary transition-colors whitespace-nowrap',
-  'hover:bg-primary-hover',
+  'hover:bg-primary-hover active:bg-primary-active',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
 );

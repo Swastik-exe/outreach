@@ -14,6 +14,7 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [toast, setToast] = useState('');
+  const [toastTone, setToastTone] = useState<'ok' | 'info'>('ok');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -45,6 +46,7 @@ export default function SettingsPage() {
       document.body.removeChild(el);
     }
     setCopied(true);
+    setToastTone('ok');
     setToast('Forwarding address copied');
     setTimeout(() => {
       setCopied(false);
@@ -131,10 +133,11 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => {
+              setToastTone('info');
               setToast('Export is coming soon — we won’t ship a half-built download');
               setTimeout(() => setToast(''), 2800);
             }}
-            className="shrink-0 h-[38px] px-3.5 rounded-[9px] border border-border bg-transparent text-muted text-[13px] font-semibold hover:border-hover-border hover:text-text transition-colors"
+            className="shrink-0 min-h-11 px-3.5 rounded-[9px] border border-border bg-transparent text-muted text-[13px] font-semibold hover:border-hover-border hover:text-text active:bg-inner transition-colors"
           >
             Export
           </button>
@@ -149,10 +152,11 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => {
+              setToastTone('info');
               setToast('Account deletion ships with the privacy API — not a fake button');
               setTimeout(() => setToast(''), 2800);
             }}
-            className="shrink-0 h-[38px] px-3.5 rounded-[9px] border border-error/35 bg-transparent text-error text-[13px] font-semibold hover:border-error/50 transition-colors"
+            className="shrink-0 min-h-11 px-3.5 rounded-[9px] border border-error/35 bg-transparent text-error text-[13px] font-semibold hover:border-error/50 active:bg-error/10 transition-colors"
           >
             Delete…
           </button>
@@ -162,11 +166,17 @@ export default function SettingsPage() {
       {toast && (
         <div
           role="status"
-          className="fixed left-1/2 -translate-x-1/2 bottom-[calc(20px+env(safe-area-inset-bottom))] z-[70] flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-2.5 text-[13.5px] font-medium text-text shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
+          className="fixed left-1/2 -translate-x-1/2 bottom-[calc(20px+env(safe-area-inset-bottom))] z-[70] flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-2.5 text-[13.5px] font-medium text-text"
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M4.5 12.5l5 5L19.5 7" />
-          </svg>
+          {toastTone === 'ok' ? (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M4.5 12.5l5 5L19.5 7" />
+            </svg>
+          ) : (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 8v5 M12 16.5v.01 M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" />
+            </svg>
+          )}
           {toast}
         </div>
       )}

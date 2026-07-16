@@ -75,7 +75,7 @@ export default function DashboardPage() {
   const greeting = firstName
     ? `${greetingForHour(now.getHours())}, ${firstName}`
     : greetingForHour(now.getHours());
-  const todayLine = now.toLocaleDateString('en-GB', {
+  const todayLine = now.toLocaleDateString(undefined, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',

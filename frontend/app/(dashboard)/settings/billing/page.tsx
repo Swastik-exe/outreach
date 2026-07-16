@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { api } from '@/lib/api';
-import { charmPrice, planLabel } from '@/lib/billing';
+import { DEFAULT_PRICING, charmPrice, planLabel } from '@/lib/billing';
 import type { SubscriptionInfoResponse } from '@/lib/types';
 import { ApplicationSkeleton } from '@/components/tracker/ApplicationSkeleton';
 import { ErrorState } from '@/components/tracker/TrackerStates';
@@ -199,7 +199,7 @@ export default function BillingSettingsPage() {
           <div aria-hidden="true" className="blur-[7px] opacity-55 p-4 flex flex-col gap-2.5 bg-surface">
             <div className="flex gap-2.5 items-center">
               <span className="font-mono text-[22px] font-bold text-teal">86%</span>
-              <span className="text-[13px] text-muted">match · Razorpay SDE Intern JD</span>
+              <span className="text-[13px] text-muted">match · Acme Corp Software Engineer JD</span>
             </div>
             <div className="h-2 rounded bg-inner">
               <span className="block h-full w-[86%] rounded bg-teal" />
@@ -213,9 +213,9 @@ export default function BillingSettingsPage() {
             </div>
             <Link
               href="/pricing"
-              className="inline-flex items-center h-10 px-4 rounded-[10px] bg-amber text-[#1A1000] text-[13px] font-bold hover:bg-[#FBBF24] transition-colors"
+              className="inline-flex items-center h-10 px-4 rounded-[10px] bg-amber text-[#1A1000] text-[13px] font-bold hover:bg-[#FBBF24] active:brightness-95 transition-colors"
             >
-              See Pro · ₹299/mo
+              See Pro · {charmPrice(DEFAULT_PRICING.monthly.amountInr)}/mo
             </Link>
           </div>
         </div>
@@ -225,7 +225,7 @@ export default function BillingSettingsPage() {
 }
 
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-IN', {
+  return new Date(iso).toLocaleDateString(undefined, {
     day: 'numeric', month: 'short', year: 'numeric',
   });
 }

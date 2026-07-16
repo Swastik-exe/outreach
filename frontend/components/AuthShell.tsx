@@ -37,7 +37,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
       </div>
 
       <div className="mt-[18px] text-[12.5px] text-dim text-center max-w-[40ch]">
-        Your data stays yours — export or delete it anytime.
+        Your data stays yours — we never sell it, and you control what you share.
       </div>
     </main>
   );
@@ -68,8 +68,8 @@ export function AuthTabs({ active }: { active: 'login' | 'register' }) {
         aria-selected={active === 'login'}
         className={
           active === 'login'
-            ? 'flex-1 h-[38px] rounded-lg flex items-center justify-center no-underline text-[13.5px] font-semibold bg-surface text-text'
-            : 'flex-1 h-[38px] rounded-lg flex items-center justify-center no-underline text-[13.5px] font-semibold bg-transparent text-muted hover:text-text'
+            ? 'flex-1 min-h-11 rounded-lg flex items-center justify-center no-underline text-[13.5px] font-semibold bg-surface text-text'
+            : 'flex-1 min-h-11 rounded-lg flex items-center justify-center no-underline text-[13.5px] font-semibold bg-transparent text-muted hover:text-text active:bg-inner'
         }
       >
         Sign in
@@ -80,8 +80,8 @@ export function AuthTabs({ active }: { active: 'login' | 'register' }) {
         aria-selected={active === 'register'}
         className={
           active === 'register'
-            ? 'flex-1 h-[38px] rounded-lg flex items-center justify-center no-underline text-[13.5px] font-semibold bg-surface text-text'
-            : 'flex-1 h-[38px] rounded-lg flex items-center justify-center no-underline text-[13.5px] font-semibold bg-transparent text-muted hover:text-text'
+            ? 'flex-1 min-h-11 rounded-lg flex items-center justify-center no-underline text-[13.5px] font-semibold bg-surface text-text'
+            : 'flex-1 min-h-11 rounded-lg flex items-center justify-center no-underline text-[13.5px] font-semibold bg-transparent text-muted hover:text-text active:bg-inner'
         }
       >
         Create account

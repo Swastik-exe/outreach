@@ -233,7 +233,7 @@ export default function ResumeDetailPage() {
           <div className="text-[13px] text-dim mt-0.5">
             {resume.fileName}
             {resume.analyzedAt && (
-              <> · analyzed {new Date(resume.analyzedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</>
+              <> · analyzed {new Date(resume.analyzedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</>
             )}
             {resume.targetRole && <> · targeting {resume.targetRole}</>}
           </div>

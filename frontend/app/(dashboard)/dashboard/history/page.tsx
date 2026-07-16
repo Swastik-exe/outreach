@@ -45,7 +45,7 @@ const BAND_LINES = [
 
 function formatDate(iso: string) {
   const d = new Date(iso);
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 }
 
 function formatWhen(iso: string) {
@@ -57,7 +57,7 @@ function formatWhen(iso: string) {
   const diffDays = Math.round((today.getTime() - target.getTime()) / 86_400_000);
   if (diffDays === 0) return 'Today';
   if (diffDays === 1) return 'Yesterday';
-  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  return d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 function filterByRange(entries: HistoryEntry[], days: RangeDays): HistoryEntry[] {

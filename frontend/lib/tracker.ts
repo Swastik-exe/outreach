@@ -130,9 +130,10 @@ export function getStatusMeta(status: string) {
   );
 }
 
+/** Browser-locale dates — clear day/month/year for any region. */
 export function fmtDate(iso: string | null | undefined) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-IN', {
+  return new Date(iso).toLocaleDateString(undefined, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -141,7 +142,7 @@ export function fmtDate(iso: string | null | undefined) {
 
 export function fmtDateTime(iso: string | null | undefined) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleString('en-IN', {
+  return new Date(iso).toLocaleString(undefined, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

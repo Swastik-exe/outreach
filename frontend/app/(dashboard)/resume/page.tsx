@@ -59,7 +59,7 @@ function statusLabel(status: string) {
 
 function fmtDate(iso: string | null) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function ResumeSkeleton() {

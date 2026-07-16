@@ -11,7 +11,7 @@ const OUT = '/tmp/outreach-shots';
 mkdirSync(OUT, { recursive: true });
 
 const ROUTES = ['/', '/login', '/register', '/dashboard', '/tracker', '/resume', '/pricing'];
-const WIDTHS = [360, 375, 768, 820, 1280];
+const WIDTHS = [320, 360, 375, 414, 768, 819, 820, 1024, 1280, 1440];
 
 const browser = await chromium.launch();
 const results = [];
