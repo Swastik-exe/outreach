@@ -365,10 +365,3 @@ export interface AdminFeedbackItem {
   type: string;
   createdAt: string;
 }
-
-export interface SpringPage<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
-}
