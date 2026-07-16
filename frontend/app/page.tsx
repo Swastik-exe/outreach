@@ -267,8 +267,6 @@ export default function Home() {
             {[
               { href: '/pricing', label: 'Pricing' },
               { href: '/login', label: 'Sign in' },
-              { href: '#top', label: 'Privacy' },
-              { href: '#top', label: 'Contact' },
             ].map((link) => (
               <Link
                 key={link.label}

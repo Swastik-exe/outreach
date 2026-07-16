@@ -319,6 +319,7 @@ export default function CohortPage() {
             }}
           >
             <div className="flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/assets/logo-purple.svg" alt="" width={20} height={20} />
               <span className="font-space font-semibold text-[13.5px] text-text">Outreach</span>
               <span className="ml-auto text-[11px] text-dim">This week</span>

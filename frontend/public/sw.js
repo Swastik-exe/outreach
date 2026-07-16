@@ -1,5 +1,5 @@
 /* Outreach PWA — cache app shell + static assets only; never cache API. */
-const CACHE = 'outreach-shell-v1';
+const CACHE = 'outreach-shell-v2';
 const SHELL = [
   '/',
   '/dashboard',

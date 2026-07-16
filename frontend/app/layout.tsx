@@ -24,8 +24,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Outreach — Career Readiness',
-  description: 'Track your career readiness score, applications, and skills.',
+  title: {
+    default: 'Outreach — Career Readiness',
+    template: '%s · Outreach',
+  },
+  description:
+    'Know where you stand. A calm 0–1000 career readiness score, application tracker, and resume analyser for job seekers.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -34,17 +38,19 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: '/icons/icon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icons/icon-32.png', sizes: '32x32', type: 'image/png' },
       { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: [
-      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#7C3AED',
+  themeColor: '#050816',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',

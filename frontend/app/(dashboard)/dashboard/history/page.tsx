@@ -86,8 +86,13 @@ function buildChangeLog(entries: HistoryEntry[]): ChangeLogItem[] {
   return changes.reverse();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function CustomTooltip({ active, payload, label }: any) {
+type TooltipProps = {
+  active?: boolean;
+  payload?: { payload: ChartPoint }[];
+  label?: string | number;
+};
+
+function CustomTooltip({ active, payload, label }: TooltipProps) {
   if (!active || !payload?.length) return null;
   const { score, band } = payload[0].payload as ChartPoint;
   const meta = getBandMeta(band);
