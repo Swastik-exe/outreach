@@ -37,18 +37,18 @@ const FEATURES = [
 const STEPS = [
   {
     num: '1',
-    title: 'Answer two questions',
-    body: 'Where you are and what you\u2019re aiming for. Your starting score appears instantly — most people begin between 200 and 320.',
+    title: 'Sign up with any email',
+    body: 'No resume required to begin. Verify once — your dashboard is ready.',
   },
   {
     num: '2',
-    title: 'Do the next action',
-    body: 'The dashboard always shows the single highest-impact step, with an estimated point gain.',
+    title: 'See your starting score',
+    body: 'A calm 0–1000 readiness number. Most people begin between 200 and 320 — a starting point, not a verdict.',
   },
   {
     num: '3',
-    title: 'Watch the number climb',
-    body: 'Daily recomputes, a 90-day history, and your own cohort percentile. Progress you can screenshot.',
+    title: 'Do the next action',
+    body: 'The dashboard always shows the single highest-impact step, with an estimated point gain.',
   },
 ] as const;
 
@@ -228,10 +228,10 @@ export default function Home() {
             <div className="mt-10 bg-card border border-border rounded-2xl p-[clamp(24px,4vw,36px)] flex gap-5 items-center flex-wrap">
               <div className="flex-1 min-w-[min(100%,280px)]">
                 <h2 className="font-space font-semibold text-xl">
-                  Two questions. Then your starting score.
+                  Any email. Then your starting score.
                 </h2>
                 <p className="mt-1.5 text-sm text-muted max-w-[56ch] text-pretty">
-                  Sign up with any email — no resume required to begin. A low first score isn&apos;t a
+                  Sign up free — no resume required to begin. A low first score isn&apos;t a
                   verdict; it&apos;s a starting point with the fastest way up attached.
                 </p>
               </div>

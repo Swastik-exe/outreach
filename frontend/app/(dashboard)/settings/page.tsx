@@ -130,6 +130,10 @@ export default function SettingsPage() {
           </span>
           <button
             type="button"
+            onClick={() => {
+              setToast('Export is coming soon — we won’t ship a half-built download');
+              setTimeout(() => setToast(''), 2800);
+            }}
             className="shrink-0 h-[38px] px-3.5 rounded-[9px] border border-border bg-transparent text-muted text-[13px] font-semibold hover:border-hover-border hover:text-text transition-colors"
           >
             Export
@@ -144,6 +148,10 @@ export default function SettingsPage() {
           </span>
           <button
             type="button"
+            onClick={() => {
+              setToast('Account deletion ships with the privacy API — not a fake button');
+              setTimeout(() => setToast(''), 2800);
+            }}
             className="shrink-0 h-[38px] px-3.5 rounded-[9px] border border-error/35 bg-transparent text-error text-[13px] font-semibold hover:border-error/50 transition-colors"
           >
             Delete…
