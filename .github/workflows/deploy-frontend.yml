@@ -42,7 +42,7 @@ jobs:
             echo "No frontend paths changed — skipping Vercel deploy."
           fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.filter.outputs.should_deploy == 'true'
         with:
           node-version: '20'
