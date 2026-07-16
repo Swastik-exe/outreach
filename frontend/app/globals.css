@@ -27,11 +27,17 @@
 }
 
 /* ── Base ──────────────────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: auto;
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   min-height: 100dvh;
+  /* Avoid compositor thrash from subpixel font smoothing on long lists */
+  -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
@@ -61,7 +67,7 @@ body {
   outline-offset: 2px;
 }
 
-/* ── Skeleton shimmer (lists / loading cards) ──────────────────────────────── */
+/* ── Skeleton shimmer (lists / loading cards only) ─────────────────────────── */
 @keyframes shimmer {
   0% { background-position: 190% 0; }
   100% { background-position: -190% 0; }
@@ -71,16 +77,18 @@ body {
   background: linear-gradient(100deg, #1B2740 40%, #28395A 50%, #1B2740 60%);
   background-size: 250% 100%;
   animation: shimmer 1.6s ease-in-out infinite;
+  will-change: background-position;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .skeleton-shimmer {
     animation: none !important;
     background: #1B2740;
+    will-change: auto;
   }
 }
 
-/* ── Vortex loader arcs ────────────────────────────────────────────────────── */
+/* ── Vortex loader arcs (GPU-friendly transform only) ──────────────────────── */
 @keyframes vortex-cw {
   to { transform: rotate(360deg); }
 }
@@ -88,6 +96,11 @@ body {
   to { transform: rotate(-360deg); }
 }
 
+.vortex-spin-cw,
+.vortex-spin-ccw {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
 .vortex-spin-cw {
   animation: vortex-cw 0.9s linear infinite;
 }
@@ -100,6 +113,11 @@ body {
   .vortex-spin-ccw {
     animation: none !important;
   }
+}
+
+/* Sticky/fixed chrome: promote once, avoid blur (blur is applied nowhere here) */
+.chrome-sticky {
+  transform: translateZ(0);
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */

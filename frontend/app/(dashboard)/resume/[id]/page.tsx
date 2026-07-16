@@ -38,7 +38,7 @@ function ScoreMeter({
       <span className="shrink-0 max-w-[32%] min-w-[128px] text-[13px] text-muted truncate">{label}</span>
       <span className="flex-1 h-[5px] rounded-sm bg-inner overflow-hidden">
         <span
-          className="block h-full rounded-sm transition-all duration-700"
+          className="block h-full rounded-sm transition-[width] duration-150 ease-out"
           style={{ width: `${pct}%`, background: color }}
         />
       </span>

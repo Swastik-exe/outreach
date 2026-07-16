@@ -75,7 +75,7 @@ export function FeedbackFab() {
 
       {open && (
         <div
-          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-bg/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-bg/70"
           role="dialog"
           aria-modal="true"
           aria-labelledby="feedback-title"

@@ -38,13 +38,12 @@ export function MobileHeader() {
 
   return (
     <header
-      className="shell:hidden sticky top-0 z-20 flex items-center gap-2.5 px-4 border-b border-border"
+      className="shell:hidden sticky top-0 z-20 flex items-center gap-2.5 px-4 border-b border-border chrome-sticky"
       style={{
         paddingTop: 'calc(10px + env(safe-area-inset-top))',
         paddingBottom: '10px',
-        background: 'rgba(5,8,22,0.88)',
-        backdropFilter: 'blur(14px)',
-        WebkitBackdropFilter: 'blur(14px)',
+        /* Solid fill — sticky backdrop-blur causes scroll jank */
+        background: '#050816',
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}

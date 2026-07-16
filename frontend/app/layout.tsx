@@ -60,7 +60,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="font-sans antialiased overflow-x-hidden">
+      <body className="font-sans overflow-x-hidden">
         <AuthProvider>
           <PwaRegister />
           <PwaInstallHint />

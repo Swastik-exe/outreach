@@ -77,7 +77,7 @@ export function ComponentBar({
       aria-label={`${meta.label}: ${value} of ${max}`}
     >
       <div
-        className="h-full rounded-[3px] transition-all duration-700 ease-out"
+        className="h-full rounded-[3px] transition-[width] duration-150 ease-out"
         style={{ width: `${pct}%`, backgroundColor: barColor }}
       />
     </div>
@@ -168,7 +168,7 @@ export function ComponentBar({
         aria-label={`${meta.label}: ${value} of ${max}`}
       >
         <div
-          className="h-full rounded-full transition-all duration-700 ease-out"
+          className="h-full rounded-full transition-[width] duration-150 ease-out"
           style={{ width: `${pct}%`, backgroundColor: barColor }}
         />
       </div>

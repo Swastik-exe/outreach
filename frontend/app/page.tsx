@@ -91,7 +91,7 @@ export default function Home() {
     >
       {/* Sticky header */}
       <header
-        className="sticky top-0 z-30 bg-bg/85 backdrop-blur-[14px] border-b border-border"
+        className="sticky top-0 z-30 bg-bg border-b border-border"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div className="max-w-marketing mx-auto px-[clamp(16px,4vw,36px)] h-[60px] flex items-center gap-5">

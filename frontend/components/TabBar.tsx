@@ -43,11 +43,10 @@ export function TabBar() {
   return (
     <nav
       aria-label="Primary"
-      className="shell:hidden fixed left-0 right-0 bottom-0 z-40 flex border-t border-border"
+      className="shell:hidden fixed left-0 right-0 bottom-0 z-40 flex border-t border-border chrome-sticky"
       style={{
-        background: 'rgba(11,18,32,0.94)',
-        backdropFilter: 'blur(14px)',
-        WebkitBackdropFilter: 'blur(14px)',
+        /* Solid fill — backdrop-blur on fixed chrome tanks scroll FPS on mobile */
+        background: '#0B1220',
         padding: '6px 8px calc(6px + env(safe-area-inset-bottom))',
       }}
     >

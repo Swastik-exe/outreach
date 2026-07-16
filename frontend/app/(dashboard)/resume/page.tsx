@@ -209,7 +209,7 @@ function PollingOverlay({ message, step }: { message: string; step: number }) {
       role="status"
       aria-live="polite"
       aria-label="Analyzing resume"
-      className="fixed inset-0 z-50 bg-bg/88 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-bg/92 flex items-center justify-center p-4"
     >
       <section className="bg-card border border-border rounded-2xl min-h-[320px] w-full max-w-lg flex flex-col items-center justify-center gap-5 px-6 py-10">
         <VortexLoader size="xl" label={message} />
