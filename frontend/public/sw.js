@@ -33,7 +33,9 @@ self.addEventListener('fetch', (event) => {
   // Network-first for navigations (fresh data)
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/dashboard') || caches.match('/'))
+      fetch(event.request).catch(() =>
+        caches.match(event.request).then((r) => r || caches.match('/dashboard') || caches.match('/'))
+      )
     );
     return;
   }

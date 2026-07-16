@@ -52,12 +52,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof String userId) {
             return "user:" + userId;
         }
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip != null && !ip.isBlank()) {
-            ip = ip.split(",")[0].trim();
-        } else {
-            ip = request.getRemoteAddr();
-        }
-        return "ip:" + ip;
+        // With server.forward-headers-strategy=framework, remoteAddr is the
+        // trusted client IP from the proxy — do not trust leftmost XFF.
+        return "ip:" + request.getRemoteAddr();
     }
 }

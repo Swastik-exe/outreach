@@ -63,7 +63,9 @@ export function FeedbackFab() {
           'fixed z-50 flex items-center gap-2 rounded-full shadow-lg',
           'bg-primary hover:bg-primary-hover text-white font-medium text-sm',
           'min-h-[44px] px-4 py-2',
-          'bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))]',
+          // Sit above the mobile TabBar (~74px) below the 820px shell breakpoint
+          'bottom-[calc(84px+env(safe-area-inset-bottom))] shell:bottom-[max(1rem,env(safe-area-inset-bottom))]',
+          'right-[max(1rem,env(safe-area-inset-right))]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-hover focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
           'motion-safe:transition-colors',
         )}

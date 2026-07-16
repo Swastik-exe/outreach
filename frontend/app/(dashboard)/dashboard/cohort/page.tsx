@@ -355,7 +355,7 @@ export default function CohortPage() {
               )}
             </div>
             <div className="mt-[18px] pt-3 border-t border-[rgba(51,69,107,0.6)] text-[11px] text-dim">
-              readiness, not a guarantee · outreach.app
+              readiness, not a guarantee · Outreach
             </div>
           </div>
           <div className="flex gap-2.5 mt-3.5">

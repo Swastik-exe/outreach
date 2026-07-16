@@ -1,32 +1,58 @@
 name: Deploy Backend to Render
 
-# Render builds the Dockerfile itself when the deploy hook fires — this
-# workflow's only job is to tell Render "new code is on main, go build it."
-# No image registry, no Docker build here — keeps CI fast and Render is the
-# single source of truth for the running container.
+# Fires only after CI succeeds on main (or manual dispatch).
+# Render builds the Dockerfile itself when the deploy hook fires —
+# this workflow's only job is to tell Render "CI is green, go build it."
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'pom.xml'
-      - 'mvnw'
-      - 'Dockerfile'
-      - 'render.yaml'
-      - '.github/workflows/deploy-backend.yml'
   workflow_dispatch:
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: true
 
 jobs:
   deploy:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Render deploy hook
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Detect backend-relevant changes
+        id: filter
         run: |
-          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" ]; then
-            echo "::warning::RENDER_DEPLOY_HOOK_URL is not set in GitHub Secrets."
-            echo "::warning::If Render is linked to this repo, it may still auto-deploy on push."
-            echo "::warning::Otherwise: Render Dashboard → outreach-backend → Manual Deploy."
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          curl -fsSL -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
-          echo "Render deploy hook triggered."
+          SHA="${{ github.event.workflow_run.head_sha }}"
+          CHANGED=$(git diff --name-only "${SHA}^" "${SHA}" || true)
+          echo "Changed files:"
+          echo "$CHANGED"
+          if echo "$CHANGED" | grep -qE '^(src/|pom\.xml|mvnw|Dockerfile|render\.yaml|\.github/workflows/deploy-backend\.yml)'; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            echo "No backend paths changed — skipping Render hook."
+          fi
+
+      - name: Trigger Render deploy hook
+        if: steps.filter.outputs.should_deploy == 'true'
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::error::RENDER_DEPLOY_HOOK_URL is not set in GitHub Secrets."
+            echo "Render Dashboard → outreach-backend → Manual Deploy if needed."
+            exit 1
+          fi
+          curl -fsSL -X POST "$HOOK"
+          echo "Render deploy hook triggered for ${{ github.event.workflow_run.head_sha || github.sha }}."

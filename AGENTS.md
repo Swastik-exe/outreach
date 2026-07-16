@@ -8,7 +8,7 @@ This file tells Cursor agents how to work in this repo safely and automatically.
 |---|---|
 | Frontend (share this) | https://outreach-iota-ruddy.vercel.app |
 | Backend API | https://outreach-u35s.onrender.com/api/v1 |
-| Backend health | https://outreach-u35s.onrender.com/actuator/health |
+| Backend health | https://outreach-u35s.onrender.com/actuator/health/readiness |
 
 ## Repo layout
 
@@ -76,7 +76,7 @@ bash scripts/verify-build.sh
 BASE=https://outreach-u35s.onrender.com/api/v1 bash scripts/verify-t9.sh
 
 # Health
-curl https://outreach-u35s.onrender.com/actuator/health
+curl https://outreach-u35s.onrender.com/actuator/health/readiness
 ```
 
 ## UI/UX changes

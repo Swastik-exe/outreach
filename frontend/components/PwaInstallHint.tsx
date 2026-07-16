@@ -107,7 +107,7 @@ export function PwaInstallHint() {
               Keep Outreach one tap away
             </span>
             <span className="block text-[12.5px] text-dim mt-0.5">
-              outreach.app · works offline
+              Install for faster access
             </span>
           </div>
         </div>
@@ -128,7 +128,7 @@ export function PwaInstallHint() {
             <span className="text-[13.5px] text-muted">
               {isIos
                 ? 'Tap Share, then “Add to Home Screen”'
-                : 'Reminders even when the tab is closed'}
+                : 'Home-screen icon — opens straight to your dashboard'}
             </span>
           </div>
         </div>

@@ -2,6 +2,8 @@ server:
   port: ${PORT:8080}
   servlet:
     context-path: /
+  # Trust X-Forwarded-* from Render/proxy so getRemoteAddr() is the real client.
+  forward-headers-strategy: framework
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/plain,text/css,application/javascript
@@ -10,6 +12,11 @@ server:
 spring:
   application:
     name: outreach
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
 
   datasource:
     url: ${DATABASE_URL}
@@ -81,6 +88,14 @@ management:
       probes:
         enabled: true
       show-details: never
+      # Readiness excludes Redis: the app fails open when Redis is down.
+      # Render/UptimeRobot should probe /actuator/health/readiness so a
+      # Redis blip does not mark the whole service unhealthy.
+      group:
+        readiness:
+          include: readinessState,db
+        liveness:
+          include: livenessState
     prometheus:
       enabled: true
   health:
@@ -104,6 +119,8 @@ app:
     refresh-token-expiry-days: 7
   cookie:
     secure: ${COOKIE_SECURE:false}
+    # Lax for localhost; prod overrides to None (required for cross-site refresh cookie).
+    same-site: ${COOKIE_SAME_SITE:Lax}
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
   oauth2:
     success-redirect: ${FRONTEND_URL:http://localhost:3000}/auth/callback

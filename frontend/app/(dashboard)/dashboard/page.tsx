@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import type { CareerScoreResponse } from '@/lib/types';
+import type { ApplicationResponse, CareerScoreResponse, SpringPage } from '@/lib/types';
+import { pageContent } from '@/lib/page';
+import { fmtDate, getStatusMeta } from '@/lib/tracker';
 import { ScoreRing } from '@/components/ScoreRing';
 import { BandBadge } from '@/components/BandBadge';
 import { VortexLoader } from '@/components/VortexLoader';
@@ -50,10 +52,10 @@ function formatUpdated(iso: string | null): string {
   const d = new Date(iso);
   const diffMs = Date.now() - d.getTime();
   const hours = Math.floor(diffMs / 3_600_000);
-  if (hours < 1) return 'Updated just now · Recalculates daily';
-  if (hours < 24) return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago · Recalculates daily`;
+  if (hours < 1) return 'Updated just now · Recalculates nightly (~02:00 IST)';
+  if (hours < 24) return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago · Recalculates nightly (~02:00 IST)`;
   const days = Math.floor(hours / 24);
-  return `Updated ${days} day${days === 1 ? '' : 's'} ago · Recalculates daily`;
+  return `Updated ${days} day${days === 1 ? '' : 's'} ago · Recalculates nightly (~02:00 IST)`;
 }
 
 export default function DashboardPage() {
@@ -61,6 +63,8 @@ export default function DashboardPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [apps, setApps] = useState<ApplicationResponse[]>([]);
+  const [followUps, setFollowUps] = useState<ApplicationResponse[]>([]);
 
   const [now, setNow] = useState(() => new Date());
 
@@ -93,6 +97,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchScore().finally(() => setLoading(false));
+    Promise.all([
+      api.get<SpringPage<ApplicationResponse>>('/applications?page=0&size=50'),
+      api.get<SpringPage<ApplicationResponse>>('/applications/follow-ups?page=0&size=20'),
+    ]).then(([appsRes, followRes]) => {
+      if (appsRes.success) setApps(pageContent(appsRes.data));
+      if (followRes.success) setFollowUps(pageContent(followRes.data));
+    });
   }, []);
 
   const handleRefresh = async () => {
@@ -107,6 +118,16 @@ export default function DashboardPage() {
     setError('');
     fetchScore().finally(() => setLoading(false));
   };
+
+  const pipelineStages = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const app of apps) {
+      counts[app.currentStatus] = (counts[app.currentStatus] ?? 0) + 1;
+    }
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+  }, [apps]);
 
   /* ── Loading ──────────────────────────────────────────────────────────── */
   if (loading) {
@@ -204,7 +225,7 @@ export default function DashboardPage() {
     : score.readinessNote;
 
   const heroMicro = score.stale
-    ? 'Score may be outdated · Recalculates nightly'
+    ? 'Score may be outdated · Recalculates nightly (~02:00 IST)'
     : formatUpdated(score.lastComputedAt);
 
   const nextTitle = isNew
@@ -418,7 +439,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* This week + Pipeline empty shells (no new API fetches this pass) */}
+      {/* This week + Pipeline — live from tracker APIs */}
       <div
         className="grid gap-4 items-start"
         style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}
@@ -436,18 +457,38 @@ export default function DashboardPage() {
               Tracker →
             </Link>
           </div>
-          <div className="px-2 pt-[22px] pb-2.5 text-center">
-            <div className="text-sm font-semibold">Nothing scheduled yet</div>
-            <p className="mx-auto mt-1 mb-3.5 text-[13px] text-muted max-w-[34ch]">
-              Add your first application and we&apos;ll watch the clock for you.
-            </p>
-            <Link
-              href="/tracker"
-              className="inline-flex items-center h-10 px-4 rounded-[10px] border border-border bg-surface text-text text-[13.5px] font-semibold no-underline hover:border-hover-border transition-colors duration-150"
-            >
-              Open Tracker
-            </Link>
-          </div>
+          {followUps.length === 0 ? (
+            <div className="px-2 pt-[22px] pb-2.5 text-center">
+              <div className="text-sm font-semibold">Nothing due right now</div>
+              <p className="mx-auto mt-1 mb-3.5 text-[13px] text-muted max-w-[34ch]">
+                When a follow-up is due, it shows up here so you never miss a nudge.
+              </p>
+              <Link
+                href="/tracker"
+                className="inline-flex items-center h-10 px-4 rounded-[10px] border border-border bg-surface text-text text-[13.5px] font-semibold no-underline hover:border-hover-border transition-colors duration-150"
+              >
+                Open Tracker
+              </Link>
+            </div>
+          ) : (
+            <ul className="mt-3.5 flex flex-col gap-1">
+              {followUps.slice(0, 4).map((app) => (
+                <li key={app.id}>
+                  <Link
+                    href={`/tracker/${app.id}`}
+                    className="flex min-h-11 items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm text-text no-underline hover:bg-row-hover transition-colors"
+                  >
+                    <span className="truncate">
+                      {app.company} · {app.role}
+                    </span>
+                    <span className="shrink-0 text-xs font-semibold text-amber">
+                      Due {fmtDate(app.nextActionDue)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section
@@ -456,19 +497,48 @@ export default function DashboardPage() {
         >
           <div className="flex items-baseline gap-2.5">
             <h2 className="m-0 font-space font-semibold text-[15px]">Pipeline</h2>
+            {apps.length > 0 && (
+              <span className="ml-auto font-mono text-[12.5px] text-dim tabular-nums">
+                {apps.length} tracked
+              </span>
+            )}
           </div>
-          <div className="px-2 pt-[22px] pb-2.5 text-center">
-            <div className="text-sm font-semibold">No applications tracked</div>
-            <p className="mx-auto mt-1 mb-3.5 text-[13px] text-muted max-w-[36ch]">
-              Forward a confirmation email or add one manually — it takes 20 seconds.
-            </p>
-            <Link
-              href="/tracker/add"
-              className="inline-flex items-center h-10 px-4 rounded-[10px] bg-primary text-white text-[13.5px] font-semibold no-underline hover:bg-primary-hover transition-colors duration-150"
-            >
-              Add application
-            </Link>
-          </div>
+          {apps.length === 0 ? (
+            <div className="px-2 pt-[22px] pb-2.5 text-center">
+              <div className="text-sm font-semibold">No applications tracked</div>
+              <p className="mx-auto mt-1 mb-3.5 text-[13px] text-muted max-w-[36ch]">
+                Forward a confirmation email or add one manually — it takes 20 seconds.
+              </p>
+              <Link
+                href="/tracker/add"
+                className="inline-flex items-center h-10 px-4 rounded-[10px] bg-primary text-white text-[13.5px] font-semibold no-underline hover:bg-primary-hover transition-colors duration-150"
+              >
+                Add application
+              </Link>
+            </div>
+          ) : (
+            <ul className="mt-3.5 flex flex-col gap-2">
+              {pipelineStages.map(([status, count]) => {
+                const meta = getStatusMeta(status);
+                return (
+                  <li key={status} className="flex items-center gap-2.5 text-[13.5px]">
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${meta.bg} ${meta.color}`}>
+                      {meta.label}
+                    </span>
+                    <span className="ml-auto font-mono text-dim tabular-nums">{count}</span>
+                  </li>
+                );
+              })}
+              <li>
+                <Link
+                  href="/tracker"
+                  className="inline-flex mt-1 text-[12.5px] font-semibold text-primary-lt no-underline hover:text-[#C4B5FD]"
+                >
+                  Open full tracker →
+                </Link>
+              </li>
+            </ul>
+          )}
         </section>
       </div>
     </>

@@ -1,6 +1,8 @@
 app:
   cookie:
     secure: true
+    # Cross-site (Vercel frontend → Render API) requires SameSite=None + Secure.
+    same-site: None
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:https://app.outreachos.com}
@@ -12,3 +14,10 @@ spring:
       maximum-pool-size: ${HIKARI_MAX_POOL:8}
       minimum-idle: 2
       max-lifetime: 1800000
+
+# Do not expose metrics/prometheus to every authenticated user in prod.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

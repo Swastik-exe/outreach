@@ -118,9 +118,11 @@ export default function BillingSettingsPage() {
           {(info.planTier === 'free' || info.expired) ? null : (
             <button
               type="button"
-              className="h-[42px] px-3.5 rounded-[10px] border-none bg-transparent text-muted text-[13.5px] font-medium hover:text-text hover:bg-card transition-colors"
+              disabled
+              title="Self-serve cancel is not available yet"
+              className="h-[42px] px-3.5 rounded-[10px] border-none bg-transparent text-dim text-[13.5px] font-medium cursor-not-allowed opacity-70"
             >
-              Cancel — two taps, no hoops
+              Cancel (coming soon)
             </button>
           )}
         </div>

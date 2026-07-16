@@ -11,12 +11,12 @@ FAIL=0
 pass() { echo "PASS: $1"; PASS=$((PASS + 1)); }
 fail() { echo "FAIL: $1"; echo "  $2"; FAIL=$((FAIL + 1)); }
 
-echo "=== 1. Backend health ==="
-health=$(curl -sf "$BASE/actuator/health" || echo "curl failed")
+echo "=== 1. Backend readiness ==="
+health=$(curl -sf "$BASE/actuator/health/readiness" || echo "curl failed")
 if echo "$health" | grep -q '"status":"UP"'; then
-  pass "health UP"
+  pass "readiness UP"
 else
-  fail "health UP" "$health"
+  fail "readiness UP" "$health"
 fi
 
 echo "=== 2. Security headers ==="

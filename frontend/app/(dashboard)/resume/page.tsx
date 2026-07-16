@@ -175,7 +175,7 @@ function UploadZone({ onFile }: { onFile: (f: File) => void }) {
       </span>
       <h2 className="mt-4 mb-1 font-space font-semibold text-[17px] text-text">Drop your resume here</h2>
       <p className="m-0 mb-[18px] text-sm text-muted max-w-[46ch] text-pretty">
-        PDF or DOCX, up to 5 MB. You&apos;ll get a readiness score and the exact fixes that raise it — usually in under 30 seconds.
+        PDF only, up to 5 MB. You&apos;ll get a readiness score and the exact fixes that raise it — usually in under 30 seconds.
       </p>
       <div
         role="button"

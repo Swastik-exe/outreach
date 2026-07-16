@@ -127,38 +127,34 @@ export default function SettingsPage() {
           <span className="flex-1 min-w-[240px]">
             <span className="block text-sm font-semibold text-text">Export my data</span>
             <span className="block text-[12.5px] text-dim text-pretty">
-              Everything — tracker, analyses, history — as JSON + CSV, instantly
+              Full export (JSON + CSV) is on the roadmap — not available yet
             </span>
           </span>
           <button
             type="button"
-            onClick={() => {
-              setToastTone('info');
-              setToast('Export is coming soon — we won’t ship a half-built download');
-              setTimeout(() => setToast(''), 2800);
-            }}
-            className="shrink-0 min-h-11 px-3.5 rounded-[9px] border border-border bg-transparent text-muted text-[13px] font-semibold hover:border-hover-border hover:text-text active:bg-inner transition-colors"
+            disabled
+            title="Coming soon"
+            aria-disabled="true"
+            className="shrink-0 min-h-11 px-3.5 rounded-[9px] border border-border bg-transparent text-dim text-[13px] font-semibold cursor-not-allowed opacity-70"
           >
-            Export
+            Coming soon
           </button>
         </div>
         <div className="flex gap-3.5 items-center py-3 border-t border-inner flex-wrap">
           <span className="flex-1 min-w-[240px]">
             <span className="block text-sm font-semibold text-error">Delete account</span>
             <span className="block text-[12.5px] text-dim text-pretty">
-              Permanent, honoured within 24 h, no guilt-trip screens
+              Self-serve deletion isn&apos;t live yet — email support when you need it
             </span>
           </span>
           <button
             type="button"
-            onClick={() => {
-              setToastTone('info');
-              setToast('Account deletion ships with the privacy API — not a fake button');
-              setTimeout(() => setToast(''), 2800);
-            }}
-            className="shrink-0 min-h-11 px-3.5 rounded-[9px] border border-error/35 bg-transparent text-error text-[13px] font-semibold hover:border-error/50 active:bg-error/10 transition-colors"
+            disabled
+            title="Coming soon"
+            aria-disabled="true"
+            className="shrink-0 min-h-11 px-3.5 rounded-[9px] border border-error/25 bg-transparent text-error/60 text-[13px] font-semibold cursor-not-allowed"
           >
-            Delete…
+            Coming soon
           </button>
         </div>
       </section>

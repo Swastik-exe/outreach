@@ -15,6 +15,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -70,6 +71,14 @@ public class GlobalExceptionHandler {
         log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiResponse.error("Request conflicts with existing data.", ApiErrorCode.CONFLICT));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUpload(MaxUploadSizeExceededException ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(ApiResponse.error(
+                        "File too large. Maximum allowed size is 5 MB.",
+                        ApiErrorCode.PAYLOAD_TOO_LARGE));
     }
 
     @ExceptionHandler({CallNotPermittedException.class})

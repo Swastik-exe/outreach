@@ -45,6 +45,10 @@ public class AuthService {
     @Value("${app.cookie.secure:false}")
     private boolean cookieSecure;
 
+    /** Lax for same-site local dev; None required for cross-site Vercel↔Render refresh. */
+    @Value("${app.cookie.same-site:Lax}")
+    private String cookieSameSite;
+
     // ── REGISTER ──────────────────────────────────────────────────────────────
 
     public void register(RegisterRequest req) {
@@ -338,7 +342,7 @@ public class AuthService {
         ResponseCookie cookie = ResponseCookie.from("refresh_token", rawToken)
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite("Lax")
+                .sameSite(cookieSameSite)
                 .path("/api/v1/auth")
                 .maxAge(Duration.ofDays(refreshTokenExpiryDays))
                 .build();
@@ -349,7 +353,7 @@ public class AuthService {
         ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite("Lax")
+                .sameSite(cookieSameSite)
                 .path("/api/v1/auth")
                 .maxAge(0)
                 .build();

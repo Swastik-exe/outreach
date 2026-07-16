@@ -20,7 +20,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(rateLimitInterceptor)
                 .addPathPatterns("/api/v1/**")
-                .excludePathPatterns("/api/v1/health", "/api/v1/auth/**");
+                // Auth routes are rate-limited (register/forgot/resend abuse).
+                .excludePathPatterns("/api/v1/health");
     }
 
     @Bean

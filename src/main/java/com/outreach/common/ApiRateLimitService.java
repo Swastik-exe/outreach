@@ -26,8 +26,10 @@ public class ApiRateLimitService {
     private static final Set<String> STRICT_PREFIXES = Set.of(
             "/api/v1/auth/login",
             "/api/v1/auth/register",
+            "/api/v1/auth/forgot-password",
+            "/api/v1/auth/resend-verification",
             "/api/v1/subscription/checkout",
-            "/api/v1/resume/upload",
+            "/api/v1/resumes/upload",
             "/api/v1/inbound-email/webhook",
             "/api/v1/webhooks/razorpay"
     );
@@ -77,7 +79,14 @@ public class ApiRateLimitService {
     }
 
     public int limitFor(String method, String path) {
-        if (path.startsWith("/api/v1/resume")) return 10;
+        if (path.startsWith("/api/v1/auth/register")
+                || path.startsWith("/api/v1/auth/forgot-password")
+                || path.startsWith("/api/v1/auth/resend-verification")) {
+            return 8; // email-sending — tight to protect Resend quota
+        }
+        if (path.startsWith("/api/v1/auth/login")) return 20;
+        if (path.startsWith("/api/v1/auth/refresh")) return 60;
+        if (path.startsWith("/api/v1/resumes")) return 10;
         if (path.contains("/career-score") && "POST".equalsIgnoreCase(method)) return 6;
         if (path.startsWith("/api/v1/subscription")) return 20;
         if (path.startsWith("/api/v1/admin")) return 60;

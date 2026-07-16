@@ -56,8 +56,10 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Run unit tests
-        run: ./mvnw -B test -Dtest='PdfValidationTest,ResumeParserTest,ScoreComponentsTest,CohortPercentileCalculatorTest,RateLimitServiceTest,AuthServiceRedisDownTest'
+      # Full suite — CI has Postgres + Redis. Do not allow-list class names
+      # (new tests were silently skipped before).
+      - name: Run tests
+        run: ./mvnw -B test
 
       - name: Build backend package
         run: ./mvnw -B clean package -DskipTests

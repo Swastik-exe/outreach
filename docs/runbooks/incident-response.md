@@ -10,10 +10,10 @@
 
 ## First steps
 
-1. **Check health:** https://outreach-u35s.onrender.com/actuator/health
+1. **Check readiness:** https://outreach-u35s.onrender.com/actuator/health/readiness (DB + process — used by Render). Aggregate `/actuator/health` may show Redis DOWN while the app still serves traffic.
 2. **Check Render logs** for stack traces or OOM.
 3. **Check Vercel** deployment status for frontend.
-4. **UptimeRobot** — confirm external perspective.
+4. **UptimeRobot** — confirm external perspective (point the monitor at `/actuator/health/readiness`).
 
 ## Common issues
 
@@ -29,8 +29,9 @@
 
 ### Redis unavailable
 
-- Auth rate limits and sessions may fail; login returns generic error.
-- Verify `REDIS_HOST`, `REDIS_PASSWORD`, SSL settings.
+- Rate limits and caches fail open where designed — traffic should continue.
+- Login lockout / AI budget counters may be weaker until Redis recovers.
+- Verify `REDIS_HOST`, `REDIS_PASSWORD`, `REDIS_SSL`. Readiness probe should still be UP.
 
 ### Database migration failure
 

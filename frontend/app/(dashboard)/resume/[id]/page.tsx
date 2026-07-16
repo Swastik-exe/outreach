@@ -55,7 +55,7 @@ function ReadinessDisplay({ score, source, fileName }: { score: number | null; s
   const ringColor = '#7C3AED';
   const r = 49;
   const circ = 2 * Math.PI * r;
-  const dash = score != null ? (score / 100) * circ * 0.71 : 0;
+  const dash = score != null ? (score / 100) * circ : 0;
 
   return (
     <div className="flex gap-4 items-center">

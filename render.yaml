@@ -10,7 +10,8 @@ services:
     dockerContext: .
     plan: free
     branch: main
-    healthCheckPath: /actuator/health
+    # readinessState + db only — Redis is fail-open and must not fail deploys
+    healthCheckPath: /actuator/health/readiness
     envVars:
       # ── Fixed for prod (safe to commit — not secrets) ──────────────────────
       - key: SPRING_PROFILES_ACTIVE

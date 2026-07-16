@@ -259,7 +259,7 @@ export default function Home() {
               className="opacity-75"
             />
             <span className="text-[13px] text-dim">
-              OutreachOS · made for job seekers, priced for students
+              Outreach · made for job seekers, priced for students
             </span>
           </div>
 

@@ -131,7 +131,7 @@ public class AuthController {
     }
 
     private String getClientIp(HttpServletRequest request) {
-        String xff = request.getHeader("X-Forwarded-For");
-        return xff != null ? xff.split(",")[0].trim() : request.getRemoteAddr();
+        // Trusted client IP via server.forward-headers-strategy=framework.
+        return request.getRemoteAddr();
     }
 }

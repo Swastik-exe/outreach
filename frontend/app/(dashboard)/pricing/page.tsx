@@ -131,7 +131,7 @@ export default function PricingPage() {
         { t: 'Priority score recomputes' },
       ],
       cta: 'Go Plus',
-      foot: 'Cancel in two taps, keep your data',
+      foot: 'Keep your data if you stop paying',
       btnStyle: 'primary',
     },
     {
@@ -176,7 +176,7 @@ export default function PricingPage() {
           Priced for a student budget. Honestly.
         </h1>
         <p className="mt-3 text-[15px] text-muted text-pretty">
-          Free covers a full serious search. Paid tiers add analysis depth and automation — no feature is held hostage, and cancelling takes two taps.
+          Free covers a full serious search. Paid tiers add analysis depth and automation — no feature is held hostage, and your data stays yours if you stop.
         </p>
         <p className="mt-2.5 text-[12.5px] text-dim">
           Launch pricing — we&apos;re still tuning it with real users. If it changes, existing plans keep their price.
@@ -324,7 +324,7 @@ export default function PricingPage() {
         </span>
         <div className="flex-1 min-w-[260px]">
           <div className="font-space font-semibold text-[16.5px]">
-            Season Pass — {charmPrice(seasonTier.amountInr)} once, valid {seasonTier.months ?? 10} months
+            Season Pass — {charmPrice(seasonTier.amountInr)} once, valid {seasonTier.months ?? 6} months
           </div>
           <p className="mt-1 text-[13.5px] text-muted max-w-[70ch] text-pretty">
             Everything in Plus for one full search, start to offer. One payment, no auto-renew, no card on file after purchase.
