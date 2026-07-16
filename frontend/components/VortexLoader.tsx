@@ -1,55 +1,106 @@
 'use client';
 
 /**
- * Minimal branded loader — a pulsing Outreach "O" ring.
- * Replace with the real VortexLoader asset once available.
+ * Vortex loader — purple outer arc (CW 0.9s) + teal inner arc (CCW 1.5s).
+ * Matches design-reference/Vortex.dc.html. Honours prefers-reduced-motion via CSS.
  */
-export function VortexLoader({ size = 48, label = 'Loading…' }: { size?: number; label?: string }) {
+type VortexSize = 'xl' | 'lg' | 'sm' | number;
+
+const SIZE_CFG: Record<'xl' | 'lg' | 'sm', { px: number; swOuter: number; swInner: number; labelSize: string; gap: string }> = {
+  xl: { px: 64, swOuter: 3.4, swInner: 3.0, labelSize: '15px', gap: '16px' },
+  lg: { px: 44, swOuter: 3.8, swInner: 3.3, labelSize: '13.5px', gap: '13px' },
+  sm: { px: 18, swOuter: 5, swInner: 4.4, labelSize: '12px', gap: '8px' },
+};
+
+function resolveSize(size: VortexSize) {
+  if (typeof size === 'number') {
+    return { px: size, swOuter: 3.8, swInner: 3.3, labelSize: '13.5px', gap: '13px' };
+  }
+  return SIZE_CFG[size] ?? SIZE_CFG.lg;
+}
+
+export function VortexLoader({
+  size = 'lg',
+  label = 'Loading…',
+}: {
+  size?: VortexSize;
+  label?: string;
+}) {
+  const cfg = resolveSize(size);
+  const aria = label || 'Loading';
+
   return (
     <div
       role="status"
-      aria-label={label}
-      className="flex flex-col items-center justify-center gap-3"
+      aria-live="polite"
+      aria-label={aria}
+      className="flex flex-col items-center justify-center"
+      style={{ gap: cfg.gap }}
     >
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 48 48"
-        fill="none"
-        aria-hidden="true"
-        className="animate-spin"
-        style={{ animationDuration: '1.4s' }}
-      >
-        <circle
-          cx="24"
-          cy="24"
-          r="20"
-          stroke="#2A2D36"
-          strokeWidth="4"
-          fill="none"
-        />
-        <path
-          d="M24 4 a20 20 0 0 1 20 20"
-          stroke="#6366F1"
-          strokeWidth="4"
-          strokeLinecap="round"
-          fill="none"
-        />
-      </svg>
-      <span className="text-sm text-[#8B8FA8] font-medium">{label}</span>
+      <div className="relative" style={{ width: cfg.px, height: cfg.px }}>
+        <svg viewBox="0 0 48 48" aria-hidden="true" className="absolute inset-0 w-full h-full">
+          <circle
+            cx="24"
+            cy="24"
+            r="19"
+            fill="none"
+            stroke="#22304A"
+            strokeWidth={cfg.swOuter}
+            opacity={0.55}
+          />
+        </svg>
+        <svg
+          viewBox="0 0 48 48"
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full vortex-spin-cw"
+        >
+          <circle
+            cx="24"
+            cy="24"
+            r="19"
+            fill="none"
+            stroke="#7C3AED"
+            strokeWidth={cfg.swOuter}
+            strokeLinecap="round"
+            strokeDasharray="34 85.4"
+            transform="rotate(-90 24 24)"
+          />
+        </svg>
+        <svg
+          viewBox="0 0 48 48"
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full vortex-spin-ccw"
+        >
+          <circle
+            cx="24"
+            cy="24"
+            r="12"
+            fill="none"
+            stroke="#2DD4BF"
+            strokeWidth={cfg.swInner}
+            strokeLinecap="round"
+            strokeDasharray="17 58.4"
+            opacity={0.9}
+            transform="rotate(90 24 24)"
+          />
+        </svg>
+      </div>
+      {label ? (
+        <div
+          className="font-medium text-center text-muted tracking-[0.01em]"
+          style={{ fontSize: cfg.labelSize }}
+        >
+          {label}
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function FullPageLoader() {
   return (
-    <div className="min-h-screen bg-[#0A0B0E] flex items-center justify-center">
-      <div className="text-center">
-        <div className="text-2xl font-bold text-white tracking-tight mb-6">
-          out<span className="text-indigo-400">reach</span>
-        </div>
-        <VortexLoader label="Loading your dashboard…" />
-      </div>
+    <div className="min-h-screen min-h-[100dvh] bg-bg flex items-center justify-center">
+      <VortexLoader size="lg" label="Loading your dashboard…" />
     </div>
   );
 }

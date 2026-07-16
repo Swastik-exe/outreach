@@ -61,10 +61,10 @@ export function FeedbackFab() {
         onClick={() => setOpen(true)}
         className={cn(
           'fixed z-50 flex items-center gap-2 rounded-full shadow-lg',
-          'bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm',
+          'bg-primary hover:bg-primary-hover text-white font-medium text-sm',
           'min-h-[44px] px-4 py-2',
           'bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))]',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0B0E]',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-hover focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
           'motion-safe:transition-colors',
         )}
         aria-label="Report bug or request feature"
@@ -75,21 +75,21 @@ export function FeedbackFab() {
 
       {open && (
         <div
-          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-black/60"
+          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-bg/60 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="feedback-title"
           onClick={(e) => e.target === e.currentTarget && close()}
         >
-          <div className="w-full max-w-md rounded-xl bg-[#111318] border border-[#2A2D36] p-5 shadow-xl">
+          <div className="w-full max-w-md rounded-2xl bg-card border border-border p-5 shadow-xl">
             <div className="flex items-center justify-between mb-4">
-              <h2 id="feedback-title" className="text-lg font-semibold text-[#F4F5F7]">
+              <h2 id="feedback-title" className="text-lg font-semibold font-space text-text">
                 Report bug / Request feature
               </h2>
               <button
                 type="button"
                 onClick={close}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-[#8B8FA8] hover:text-white hover:bg-[#1A1D24] focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-muted hover:text-text hover:bg-surface focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label="Close"
               >
                 <X className="w-5 h-5" />
@@ -97,13 +97,13 @@ export function FeedbackFab() {
             </div>
 
             {status === 'success' ? (
-              <p className="text-emerald-400 py-4 text-center" role="status">
+              <p className="text-success-lt py-4 text-center" role="status">
                 Thanks — we got your feedback!
               </p>
             ) : (
               <form onSubmit={submit} className="space-y-4">
-                <p className="text-xs text-[#8B8FA8]">
-                  Screen: <span className="font-mono text-[#F4F5F7]">{screen}</span>
+                <p className="text-xs text-dim">
+                  Screen: <span className="font-mono text-text">{screen}</span>
                 </p>
 
                 <div className="flex gap-2" role="group" aria-label="Feedback type">
@@ -114,10 +114,10 @@ export function FeedbackFab() {
                       onClick={() => setType(t)}
                       className={cn(
                         'flex-1 min-h-[44px] rounded-lg text-sm font-medium capitalize',
-                        'focus-visible:ring-2 focus-visible:ring-indigo-500',
+                        'focus-visible:ring-2 focus-visible:ring-primary',
                         type === t
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-[#1A1D24] text-[#8B8FA8] hover:text-white',
+                          ? 'bg-primary text-white'
+                          : 'bg-surface text-muted hover:text-text border border-border',
                       )}
                     >
                       {t === 'bug' ? 'Bug' : 'Feature'}
@@ -132,17 +132,17 @@ export function FeedbackFab() {
                   rows={4}
                   maxLength={5000}
                   placeholder="What happened? What would you like to see?"
-                  className="w-full rounded-lg bg-[#1A1D24] border border-[#2A2D36] px-3 py-2.5 text-sm text-[#F4F5F7] placeholder-[#4B4F63] focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y min-h-[100px]"
+                  className="w-full rounded-[10px] bg-surface border border-border px-3 py-2.5 text-sm text-text placeholder-dim focus:outline-none focus:ring-2 focus:ring-primary resize-y min-h-[100px]"
                 />
 
                 {error && (
-                  <p className="text-sm text-red-400" role="alert">{error}</p>
+                  <p className="text-sm text-error" role="alert">{error}</p>
                 )}
 
                 <button
                   type="submit"
                   disabled={status === 'loading' || !message.trim()}
-                  className="w-full min-h-[44px] rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium focus-visible:ring-2 focus-visible:ring-indigo-400"
+                  className="w-full min-h-[44px] rounded-[10px] bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-medium focus-visible:ring-2 focus-visible:ring-primary-hover"
                 >
                   {status === 'loading' ? 'Sending…' : 'Submit'}
                 </button>

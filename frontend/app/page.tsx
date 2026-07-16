@@ -5,26 +5,70 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth';
 import { FullPageLoader } from '@/components/VortexLoader';
-import { ScoreRing } from '@/components/ScoreRing';
-import { BandBadge } from '@/components/BandBadge';
+import { LandingScoreMock } from '@/components/landing/LandingScoreMock';
 
 const FEATURES = [
   {
-    icon: '🗂️',
     title: 'Application Tracker',
-    body: 'A calm, single place for every application — status, timelines, and follow-up nudges so nothing slips through.',
+    body: 'Every application, every stage, one calm list. Follow-up reminders before things go quiet — forward a confirmation email and it files itself.',
+    foot: 'Statuses are journey markers, never red flags.',
+    iconBg: 'rgba(124,58,237,.14)',
+    iconColor: '#A78BFA',
+    path: 'M3.5 5.5l1.5 1.5 2.5-2.5 M3.5 11.5l1.5 1.5 2.5-2.5 M3.5 17.5l1.5 1.5 2.5-2.5 M11.5 6H21 M11.5 12H21 M11.5 18H21',
   },
   {
-    icon: '📄',
     title: 'Resume Analyzer',
-    body: 'Upload your resume and get readiness signals — keyword gaps, impact, formatting — with concrete next fixes.',
+    body: 'Upload a PDF, get a readiness score plus the exact bullets to rewrite — with before/after examples and estimated point gains.',
+    foot: 'Readiness signals — not a company\u2019s real ATS.',
+    iconBg: 'rgba(45,212,191,.12)',
+    iconColor: '#2DD4BF',
+    path: 'M13.5 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V8L13.5 3Z M13.5 3v5h5 M9.5 12.5h5 M9.5 16h5',
   },
   {
-    icon: '📈',
     title: 'Career Health Score',
-    body: 'One number that pulls together your resume, applications, skills, and profile — so you always know your next highest-impact move.',
+    body: 'One number, 0–1000, recomputed daily from five explainable subscores. Every change comes with a reason and a next step.',
+    foot: 'Explainable, honest, yours.',
+    iconBg: 'rgba(245,158,11,.12)',
+    iconColor: '#F59E0B',
+    path: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z M16.5 12a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z M12 12h.01',
   },
 ] as const;
+
+const STEPS = [
+  {
+    num: '1',
+    title: 'Answer two questions',
+    body: 'Where you are and what you\u2019re aiming for. Your starting score appears instantly — most people begin between 200 and 320.',
+  },
+  {
+    num: '2',
+    title: 'Do the next action',
+    body: 'The dashboard always shows the single highest-impact step, with an estimated point gain.',
+  },
+  {
+    num: '3',
+    title: 'Watch the number climb',
+    body: 'Daily recomputes, a 90-day history, and your own cohort percentile. Progress you can screenshot.',
+  },
+] as const;
+
+function FeatureIcon({ path, color }: { path: string; color: string }) {
+  return (
+    <svg
+      width="19"
+      height="19"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d={path} />
+    </svg>
+  );
+}
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -36,120 +80,207 @@ export default function Home() {
     }
   }, [isLoading, isAuthenticated, router]);
 
-  // Logged-in users get bounced to /dashboard above — avoid flashing the
-  // landing page while that redirect is in flight.
   if (isLoading || isAuthenticated) {
     return <FullPageLoader />;
   }
 
   return (
-    <main className="min-h-screen min-h-[100dvh] bg-bg text-text overflow-x-hidden">
-      {/* Top bar */}
+    <div
+      className="min-h-screen min-h-[100dvh] bg-bg text-text text-[15px] leading-[1.55] overflow-x-hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      {/* Sticky header */}
       <header
-        className="border-b border-border"
+        className="sticky top-0 z-30 bg-bg/85 backdrop-blur-[14px] border-b border-border"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <span className="text-lg font-bold tracking-tight text-white">
-            out<span className="text-primary-lt">reach</span>
-          </span>
-          <Link
-            href="/login"
-            className="min-h-[44px] px-3 flex items-center text-sm font-medium text-muted hover:text-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
-          >
-            Sign in
+        <div className="max-w-marketing mx-auto px-[clamp(16px,4vw,36px)] h-[60px] flex items-center gap-5">
+          <Link href="#top" className="flex items-center gap-2.5 no-underline shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/assets/logo-purple.svg" alt="" width={26} height={26} />
+            <span className="font-space font-semibold text-[16.5px] text-text">Outreach</span>
           </Link>
+
+          <nav aria-label="Site" className="ml-auto flex items-center gap-1">
+            <Link
+              href="#features"
+              className="hidden min-[720px]:inline-flex px-3 py-2 rounded-lg text-[13.5px] font-medium text-muted no-underline whitespace-nowrap hover:text-text hover:bg-card transition-colors"
+            >
+              How it works
+            </Link>
+            <Link
+              href="/pricing"
+              className="hidden min-[720px]:inline-flex px-3 py-2 rounded-lg text-[13.5px] font-medium text-muted no-underline whitespace-nowrap hover:text-text hover:bg-card transition-colors"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/login"
+              className="hidden min-[720px]:inline-flex px-3 py-2 rounded-lg text-[13.5px] font-medium text-muted no-underline whitespace-nowrap hover:text-text hover:bg-card transition-colors"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/register"
+              className="inline-flex items-center h-[38px] px-[15px] rounded-[9px] bg-primary text-white text-[13.5px] font-semibold no-underline ml-1.5 whitespace-nowrap hover:bg-primary-hover active:bg-primary-active transition-colors"
+            >
+              Get started
+            </Link>
+          </nav>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-        <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-          <div className="text-center lg:text-left">
-            <h1 className="font-space text-3xl sm:text-4xl lg:text-5xl font-bold text-text leading-tight">
-              Know exactly where your placement prep stands
+      <main id="top">
+        {/* Hero */}
+        <section className="max-w-marketing mx-auto px-[clamp(16px,4vw,36px)] py-[clamp(48px,9vw,96px)] pb-[clamp(40px,7vw,72px)] flex gap-[clamp(28px,5vw,64px)] items-center flex-wrap">
+          <div className="flex-[1_1_420px] min-w-[min(100%,320px)]">
+            <div className="inline-block px-[13px] py-1.5 rounded-full bg-surface border border-border text-[12.5px] font-medium text-muted leading-normal">
+              For students, new grads, and career switchers
+            </div>
+
+            <h1 className="mt-[18px] font-space font-bold text-[clamp(32px,5.4vw,52px)] leading-[1.08] tracking-[-0.015em] text-balance">
+              The job search, without the panic.
             </h1>
-            <p className="mt-4 text-muted text-base sm:text-lg max-w-lg mx-auto lg:mx-0">
-              Outreach tracks your applications, analyses your resume, and turns it all into one
-              clear career readiness score — so you always know your next move, not just your last one.
+
+            <p className="mt-[18px] text-[clamp(15.5px,1.6vw,17.5px)] text-muted max-w-[54ch] text-pretty">
+              Track every application, fix your resume with specific evidence-based changes, and watch
+              one honest number — your Career Health Score — climb as you act.
             </p>
 
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+            <div className="flex gap-3 mt-[26px] flex-wrap items-center">
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center min-h-[44px] px-6 py-2.5 rounded-lg text-sm font-medium bg-primary text-white hover:bg-primary-lt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="inline-flex items-center h-12 px-[22px] rounded-[11px] bg-primary text-white text-[15px] font-semibold no-underline whitespace-nowrap hover:bg-primary-hover active:bg-primary-active transition-colors"
               >
-                Get started — it&apos;s free
+                Get started free
               </Link>
               <Link
-                href="/login"
-                className="inline-flex items-center justify-center min-h-[44px] px-6 py-2.5 rounded-lg text-sm font-medium border border-border text-text hover:bg-surface2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                href="#features"
+                className="inline-flex items-center h-12 px-[18px] rounded-[11px] border border-border text-text text-[14.5px] font-semibold no-underline bg-surface whitespace-nowrap hover:border-hover-border transition-colors"
               >
-                Sign in
+                See how scoring works
               </Link>
             </div>
 
-            <p className="mt-6 text-xs text-muted max-w-md mx-auto lg:mx-0">
-              Your score is a <strong className="text-text">readiness signal, not a guarantee</strong> —
-              a compass for what to work on next, not a verdict on you.
+            <p className="mt-3.5 text-[13px] text-dim">
+              A readiness signal, not a guarantee — we&apos;re honest about that.
             </p>
           </div>
 
-          {/* Score ring preview */}
-          <div className="flex flex-col items-center gap-4">
-            <div className="bg-surface border border-border rounded-2xl p-8 flex flex-col items-center gap-4">
-              <ScoreRing score={740} band="Strong" size={200} />
-              <BandBadge band="Strong" bandRange="650–849" size="md" />
-              <p className="text-xs text-muted text-center max-w-[220px]">
-                Your Career Health Score — updated automatically as you apply, improve your resume,
-                and build your profile.
-              </p>
+          <div className="flex-[1_1_340px] min-w-[min(100%,300px)] flex justify-center">
+            <LandingScoreMock />
+          </div>
+        </section>
+
+        {/* Features */}
+        <section id="features" className="border-t border-border bg-surface">
+          <div className="max-w-marketing mx-auto px-[clamp(16px,4vw,36px)] py-[clamp(44px,7vw,72px)]">
+            <h2 className="font-space font-semibold text-[clamp(22px,3vw,28px)] tracking-[-0.01em]">
+              Three tools. One honest number.
+            </h2>
+            <p className="mt-2 text-[15px] text-muted max-w-[62ch]">
+              Everything you do — applying, following up, fixing your resume — feeds the same score, so
+              you always know the single most valuable next step.
+            </p>
+
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(270px,1fr))] gap-4 mt-[30px]">
+              {FEATURES.map((f) => (
+                <div
+                  key={f.title}
+                  className="bg-card border border-border rounded-2xl p-6 flex flex-col gap-3"
+                >
+                  <span
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ background: f.iconBg }}
+                  >
+                    <FeatureIcon path={f.path} color={f.iconColor} />
+                  </span>
+                  <h3 className="font-space font-semibold text-[17px]">{f.title}</h3>
+                  <p className="text-sm text-muted text-pretty">{f.body}</p>
+                  <div className="mt-auto text-[12.5px] text-dim">{f.foot}</div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
-        <h2 className="font-space text-2xl sm:text-3xl font-bold text-text text-center">
-          Everything your placement season needs, in one place
-        </h2>
-        <div className="mt-10 grid gap-6 sm:grid-cols-3">
-          {FEATURES.map((f) => (
-            <div
-              key={f.title}
-              className="bg-surface border border-border rounded-2xl p-6 text-center sm:text-left"
-            >
-              <div className="text-3xl mb-3" aria-hidden="true">{f.icon}</div>
-              <h3 className="font-space font-semibold text-text">{f.title}</h3>
-              <p className="mt-2 text-sm text-muted">{f.body}</p>
+        {/* Steps + CTA band */}
+        <section className="border-t border-border">
+          <div className="max-w-marketing mx-auto px-[clamp(16px,4vw,36px)] py-[clamp(44px,7vw,72px)]">
+            <h2 className="font-space font-semibold text-[clamp(22px,3vw,28px)] tracking-[-0.01em]">
+              From first login to job-ready
+            </h2>
+
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 mt-7">
+              {STEPS.map((s) => (
+                <div key={s.num} className="flex gap-3.5 items-start">
+                  <span className="shrink-0 w-[30px] h-[30px] rounded-[9px] bg-card border border-border text-primary-lt flex items-center justify-center font-mono text-[13.5px] font-semibold">
+                    {s.num}
+                  </span>
+                  <span>
+                    <span className="block text-[15px] font-semibold text-text">{s.title}</span>
+                    <span className="block text-[13.5px] text-muted mt-0.5 text-pretty">{s.body}</span>
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Closing CTA */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-20 sm:pb-28 text-center">
-        <div
-          className="rounded-2xl border border-primary/30 bg-primary/5 p-8 sm:p-12"
-          style={{
-            paddingBottom: 'max(2rem, calc(env(safe-area-inset-bottom) + 1rem))',
-          }}
-        >
-          <h2 className="font-space text-xl sm:text-2xl font-bold text-text">
-            Start building your readiness score today
-          </h2>
-          <p className="mt-2 text-sm text-muted max-w-md mx-auto">
-            Free to start. No credit card required.
-          </p>
-          <Link
-            href="/register"
-            className="mt-6 inline-flex items-center justify-center min-h-[44px] px-6 py-2.5 rounded-lg text-sm font-medium bg-primary text-white hover:bg-primary-lt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            Create your free account
-          </Link>
+            <div className="mt-10 bg-card border border-border rounded-2xl p-[clamp(24px,4vw,36px)] flex gap-5 items-center flex-wrap">
+              <div className="flex-1 min-w-[min(100%,280px)]">
+                <h2 className="font-space font-semibold text-xl">
+                  Two questions. Then your starting score.
+                </h2>
+                <p className="mt-1.5 text-sm text-muted max-w-[56ch] text-pretty">
+                  Sign up with any email — no resume required to begin. A low first score isn&apos;t a
+                  verdict; it&apos;s a starting point with the fastest way up attached.
+                </p>
+              </div>
+              <Link
+                href="/register"
+                className="inline-flex items-center h-12 px-[22px] rounded-[11px] bg-primary text-white text-[15px] font-semibold no-underline whitespace-nowrap hover:bg-primary-hover transition-colors"
+              >
+                Get started free
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-surface">
+        <div className="max-w-marketing mx-auto px-[clamp(16px,4vw,36px)] py-6 flex gap-4 items-center flex-wrap">
+          <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/logo-white.svg"
+              alt=""
+              width={18}
+              height={18}
+              className="opacity-75"
+            />
+            <span className="text-[13px] text-dim">
+              OutreachOS · made for job seekers, priced for students
+            </span>
+          </div>
+
+          <nav aria-label="Footer" className="ml-auto flex gap-0.5 flex-wrap">
+            {[
+              { href: '/pricing', label: 'Pricing' },
+              { href: '/login', label: 'Sign in' },
+              { href: '#top', label: 'Privacy' },
+              { href: '#top', label: 'Contact' },
+            ].map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="px-2.5 py-2 rounded-lg text-[12.5px] text-muted no-underline hover:text-text transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
         </div>
-      </section>
-    </main>
+      </footer>
+    </div>
   );
 }

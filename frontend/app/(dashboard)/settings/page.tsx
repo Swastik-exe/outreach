@@ -13,6 +13,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [toast, setToast] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -35,41 +36,49 @@ export default function SettingsPage() {
     if (!address?.address) return;
     try {
       await navigator.clipboard.writeText(address.address);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for older browsers
       const el = document.createElement('textarea');
       el.value = address.address;
       document.body.appendChild(el);
       el.select();
       document.execCommand('copy');
       document.body.removeChild(el);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
+    setCopied(true);
+    setToast('Forwarding address copied');
+    setTimeout(() => {
+      setCopied(false);
+      setToast('');
+    }, 2200);
   }
 
   return (
-    <div className="max-w-xl mx-auto space-y-6">
+    <div className="w-full max-w-settings mx-auto flex flex-col gap-4">
       <header>
-        <h1 className="text-2xl font-bold font-space text-text">Settings</h1>
-        <p className="text-sm text-muted mt-1">
-          Your personal tools for keeping the tracker up to date effortlessly.
+        <h1 className="font-space font-semibold text-[21px] text-text">Settings</h1>
+        <p className="text-[13px] text-dim mt-0.5">
+          Account, forwarding, notifications — the essentials only
         </p>
         <Link
           href="/settings/billing"
-          className="mt-3 inline-flex text-sm text-primary-lt hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+          className="mt-2 inline-flex text-sm text-primary-lt hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
         >
-          Billing & usage →
+          Billing &amp; usage →
         </Link>
       </header>
 
-      <section className="rounded-xl border border-border bg-surface p-4 sm:p-6">
-        <h2 className="font-medium text-text">Email forwarding</h2>
-        <p className="text-sm text-muted mt-2">
-          Forward application confirmation emails here to auto-add them as drafts —
-          review and confirm before they join your tracker.
+      <section aria-label="Email forwarding" className="bg-card border border-border rounded-2xl px-[22px] py-5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <h2 className="font-space font-semibold text-[15px] m-0">Email forwarding</h2>
+          {address && !loading && !error && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-success/10 border border-success/30 text-[11.5px] font-semibold text-success-lt">
+              <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-success" />
+              Working
+            </span>
+          )}
+        </div>
+        <p className="mt-2 text-[13.5px] text-muted max-w-[64ch] text-pretty">
+          Forward any application confirmation to your private address and it lands in the Tracker as a draft. We parse only what you forward — we never read your inbox.
         </p>
 
         {loading && (
@@ -78,46 +87,87 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {!loading && error && <div className="mt-4"><ErrorState message={error} onRetry={load} /></div>}
-
-        {!loading && address && (
+        {!loading && error && (
           <div className="mt-4">
-            <label htmlFor="forwarding-address" className="text-xs text-muted">
-              Your unique forwarding address
-            </label>
-            <div className="mt-2 flex flex-col sm:flex-row gap-2">
-              <input
-                id="forwarding-address"
-                readOnly
-                value={address.address}
-                className={cn(
-                  'flex-1 min-h-[44px] rounded-lg border border-border bg-bg px-3 py-2',
-                  'text-sm font-mono text-text select-all',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                )}
-                aria-describedby="forwarding-help"
-              />
-              <button
-                type="button"
-                onClick={copyAddress}
-                className={btnPrimary}
-                aria-live="polite"
-              >
-                {copied ? 'Copied!' : 'Copy address'}
-              </button>
-            </div>
-            <p id="forwarding-help" className="text-xs text-muted mt-2">
-              Add this as a forwarding destination in your email client or set up Cloudflare Email Routing.
-            </p>
+            <ErrorState message={error} onRetry={load} />
           </div>
         )}
+
+        {!loading && address && (
+          <div className="mt-3.5 flex gap-2.5 flex-wrap items-stretch">
+            <code
+              id="forwarding-address"
+              className="flex-1 min-w-[260px] flex items-center px-3.5 h-12 rounded-[11px] bg-surface border border-border font-mono text-[13.5px] text-teal overflow-auto whitespace-nowrap"
+            >
+              {address.address}
+            </code>
+            <button
+              type="button"
+              onClick={copyAddress}
+              className={btnPrimary}
+              aria-live="polite"
+            >
+              {copied ? 'Copied' : 'Copy address'}
+            </button>
+          </div>
+        )}
+
+        {!loading && address && (
+          <p className="text-xs text-dim mt-2.5">
+            Tip: set a filter in your mail app — from:(no-reply) subject:(application) → forward. One minute, then it&apos;s automatic.
+          </p>
+        )}
       </section>
+
+      <section aria-label="Privacy and data" className="bg-card border border-border rounded-2xl px-[22px] py-5">
+        <h2 className="font-space font-semibold text-[15px] m-0 mb-1.5">Privacy &amp; data</h2>
+        <div className="flex gap-3.5 items-center py-3 flex-wrap">
+          <span className="flex-1 min-w-[240px]">
+            <span className="block text-sm font-semibold text-text">Export my data</span>
+            <span className="block text-[12.5px] text-dim text-pretty">
+              Everything — tracker, analyses, history — as JSON + CSV, instantly
+            </span>
+          </span>
+          <button
+            type="button"
+            className="shrink-0 h-[38px] px-3.5 rounded-[9px] border border-border bg-transparent text-muted text-[13px] font-semibold hover:border-hover-border hover:text-text transition-colors"
+          >
+            Export
+          </button>
+        </div>
+        <div className="flex gap-3.5 items-center py-3 border-t border-inner flex-wrap">
+          <span className="flex-1 min-w-[240px]">
+            <span className="block text-sm font-semibold text-error">Delete account</span>
+            <span className="block text-[12.5px] text-dim text-pretty">
+              Permanent, honoured within 24 h, no guilt-trip screens
+            </span>
+          </span>
+          <button
+            type="button"
+            className="shrink-0 h-[38px] px-3.5 rounded-[9px] border border-error/35 bg-transparent text-error text-[13px] font-semibold hover:border-error/50 transition-colors"
+          >
+            Delete…
+          </button>
+        </div>
+      </section>
+
+      {toast && (
+        <div
+          role="status"
+          className="fixed left-1/2 -translate-x-1/2 bottom-[calc(20px+env(safe-area-inset-bottom))] z-[70] flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-2.5 text-[13.5px] font-medium text-text shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4.5 12.5l5 5L19.5 7" />
+          </svg>
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
 
 const btnPrimary = cn(
-  'inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium shrink-0',
-  'bg-primary text-white hover:bg-primary-lt transition-colors',
+  'inline-flex items-center justify-center h-12 px-[18px] rounded-[11px] text-[13.5px] font-semibold shrink-0',
+  'bg-primary text-white hover:bg-primary-hover transition-colors',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
 );

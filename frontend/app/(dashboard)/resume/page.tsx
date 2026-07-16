@@ -9,29 +9,51 @@ import { cn } from '@/lib/utils';
 import { VortexLoader } from '@/components/VortexLoader';
 import type { ResumeResponse, ResumeStatusResponse, SpringPage, UploadResponse } from '@/lib/types';
 
-// ── Constants ─────────────────────────────────────────────────────────────────
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const POLL_INTERVAL_MS = 2500;
-const MAX_POLLS = 24; // 60 s
+const MAX_POLLS = 24;
 const TERMINAL_STATUSES = new Set(['done', 'done_basic', 'failed']);
 
 const POLL_MESSAGES = [
-  'Parsing your resume…',
-  'Analysing content…',
-  'Checking keywords…',
-  'Scoring readiness…',
-  'Finalising signals…',
-  'Almost there…',
+  'Reading structure & sections',
+  'Checking evidence in every bullet',
+  'Matching keywords for your target role',
+  'Writing your prioritized fixes',
 ];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+const POLL_STEPS = [
+  'Reading structure & sections',
+  'Checking evidence in every bullet',
+  'Matching keywords for your target role',
+  'Writing your prioritized fixes',
+];
+
+function UploadIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M12 16V4 M7 9l5-5 5 5 M4 20h16" />
+    </svg>
+  );
+}
+
 function statusLabel(status: string) {
   switch (status) {
-    case 'done':       return { text: 'Analysis complete', cls: 'text-emerald-400 bg-emerald-400/10' };
-    case 'done_basic': return { text: 'Basic analysis',    cls: 'text-indigo-400 bg-indigo-400/10'  };
-    case 'failed':     return { text: 'Failed',            cls: 'text-red-400 bg-red-400/10'        };
-    case 'processing': return { text: 'Processing…',       cls: 'text-amber-400 bg-amber-400/10'    };
-    default:           return { text: 'Pending',           cls: 'text-[#8B8FA8] bg-[#1A1D24]'      };
+    case 'done':       return { text: 'Analysis complete', cls: 'text-success-lt bg-success/10 border-success/30' };
+    case 'done_basic': return { text: 'Basic analysis',    cls: 'text-primary-lt bg-primary/12 border-primary/30' };
+    case 'failed':     return { text: 'Failed',            cls: 'text-error bg-error/14 border-error/30' };
+    case 'processing': return { text: 'Processing…',       cls: 'text-amber bg-amber/10 border-amber/30' };
+    default:           return { text: 'Pending',           cls: 'text-dim bg-surface border-border' };
   }
 }
 
@@ -40,26 +62,24 @@ function fmtDate(iso: string | null) {
   return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-// ── Skeleton card ─────────────────────────────────────────────────────────────
 function ResumeSkeleton() {
   return (
-    <div className="bg-surface rounded-xl border border-border p-5 animate-pulse" aria-hidden="true">
+    <div className="bg-card rounded-2xl border border-border p-5 animate-pulse" aria-hidden="true">
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1 space-y-2">
-          <div className="h-4 bg-surface2 rounded w-1/2" />
-          <div className="h-3 bg-surface2 rounded w-1/3" />
+          <div className="h-4 bg-inner rounded w-1/2" />
+          <div className="h-3 bg-inner rounded w-1/3" />
         </div>
-        <div className="h-6 w-24 bg-surface2 rounded-full" />
+        <div className="h-6 w-24 bg-inner rounded-full" />
       </div>
       <div className="mt-4 flex items-end justify-between">
-        <div className="h-8 w-16 bg-surface2 rounded" />
-        <div className="h-8 w-24 bg-surface2 rounded-lg" />
+        <div className="h-8 w-16 bg-inner rounded" />
+        <div className="h-8 w-24 bg-inner rounded-lg" />
       </div>
     </div>
   );
 }
 
-// ── Resume card ───────────────────────────────────────────────────────────────
 function ResumeCard({
   resume,
   onDelete,
@@ -71,6 +91,7 @@ function ResumeCard({
   const [deleting, setDeleting] = useState(false);
   const { text, cls } = statusLabel(resume.analysisStatus);
   const isAnalysed = resume.analysisStatus === 'done' || resume.analysisStatus === 'done_basic';
+  const scoreColor = resume.active ? 'text-primary-lt' : 'text-text';
 
   async function handleDelete() {
     if (!confirming) { setConfirming(true); return; }
@@ -80,112 +101,59 @@ function ResumeCard({
   }
 
   return (
-    <article className="group bg-surface rounded-xl border border-border p-5 hover:border-primary/40 transition-colors">
-      <div className="flex flex-wrap justify-between items-start gap-2">
-        <div className="min-w-0">
-          <h2 className="font-semibold text-text truncate">
-            {resume.title ?? resume.fileName ?? 'Resume'}
-          </h2>
-          <p className="text-xs text-muted mt-0.5">
-            {resume.fileName} &middot; Uploaded {fmtDate(resume.createdAt)}
-          </p>
-        </div>
-        <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full shrink-0', cls)}>
-          {text}
-        </span>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
-        {/* Readiness score */}
-        <div>
-          {isAnalysed && resume.readinessScore != null ? (
-            <>
-              <span className="font-mono text-3xl font-bold text-text">
-                {resume.readinessScore}
-              </span>
-              <span className="text-muted text-sm ml-1">/ 100</span>
-              <p className="text-xs text-muted mt-0.5">readiness signal</p>
-            </>
-          ) : resume.analysisStatus === 'failed' ? (
-            <p className="text-sm text-red-400">Could not read PDF</p>
-          ) : (
-            <p className="text-sm text-muted italic">Analysing…</p>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {confirming ? (
-            <>
-              <span className="text-xs text-red-400">Delete?</span>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[36px]',
-                  'bg-red-500/15 text-red-400 hover:bg-red-500/25',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500',
-                )}
+    <div className="flex items-center gap-3 py-2.5 flex-wrap group">
+      <span className={cn('shrink-0 font-mono text-[12.5px] font-semibold tabular-nums', scoreColor)}>
+        {isAnalysed && resume.readinessScore != null ? resume.readinessScore : '—'}
+      </span>
+      <span className="flex-1 min-w-[160px] text-[13.5px] text-text">
+        {resume.title ?? resume.fileName ?? 'Resume'}
+        <span className="text-dim text-[12.5px]"> · {fmtDate(resume.createdAt)}</span>
+      </span>
+      <span className={cn('shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-full border', cls)}>
+        {text}
+      </span>
+      <span className="shrink-0 flex items-center gap-2">
+        {confirming ? (
+          <>
+            <span className="text-xs text-error">Delete?</span>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold min-h-[36px] bg-error/14 text-error hover:bg-error/20 focus-visible:ring-2 focus-visible:ring-error"
+            >
+              {deleting ? 'Deleting…' : 'Yes'}
+            </button>
+            <button
+              onClick={() => setConfirming(false)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold min-h-[36px] text-muted hover:text-text hover:bg-surface"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            {(isAnalysed || resume.analysisStatus === 'failed') && (
+              <Link
+                href={`/resume/${resume.id}`}
+                className="px-3.5 py-2 rounded-[10px] text-[13px] font-semibold min-h-[40px] flex items-center border border-border bg-surface text-text hover:border-hover-border transition-colors"
               >
-                {deleting ? 'Deleting…' : 'Yes, delete'}
-              </button>
-              <button
-                onClick={() => setConfirming(false)}
-                className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[36px]',
-                  'text-muted hover:text-text hover:bg-surface2',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
-                )}
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              {isAnalysed && (
-                <Link
-                  href={`/resume/${resume.id}`}
-                  className={cn(
-                    'px-4 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center',
-                    'bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
-                  )}
-                >
-                  View results
-                </Link>
-              )}
-              {resume.analysisStatus === 'failed' && (
-                <Link
-                  href={`/resume/${resume.id}`}
-                  className={cn(
-                    'px-4 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center',
-                    'text-muted hover:text-text hover:bg-surface2',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
-                  )}
-                >
-                  Details
-                </Link>
-              )}
-              <button
-                onClick={handleDelete}
-                aria-label={`Delete ${resume.title ?? resume.fileName ?? 'resume'}`}
-                className={cn(
-                  'px-3 py-2 rounded-lg text-xs font-medium transition-colors min-h-[44px]',
-                  'text-dim hover:text-red-400 hover:bg-red-400/10',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500',
-                )}
-              >
-                Delete
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    </article>
+                {isAnalysed ? 'View results' : 'Details'}
+              </Link>
+            )}
+            <button
+              onClick={handleDelete}
+              aria-label={`Delete ${resume.title ?? resume.fileName ?? 'resume'}`}
+              className="px-3 py-2 rounded-lg text-xs font-medium min-h-[40px] text-dim hover:text-error hover:bg-error/10"
+            >
+              Delete
+            </button>
+          </>
+        )}
+      </span>
+    </div>
   );
 }
 
-// ── Upload drop zone ──────────────────────────────────────────────────────────
 function UploadZone({ onFile }: { onFile: (f: File) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -195,23 +163,32 @@ function UploadZone({ onFile }: { onFile: (f: File) => void }) {
   }
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label="Upload a PDF resume — click or drag and drop"
-      onKeyDown={(e) => e.key === 'Enter' || e.key === ' ' ? inputRef.current?.click() : undefined}
-      onClick={() => inputRef.current?.click()}
-      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-      onDragLeave={() => setDragOver(false)}
-      onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
+    <section
+      aria-label="Upload your resume"
       className={cn(
-        'border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
-        dragOver
-          ? 'border-indigo-400 bg-indigo-500/5'
-          : 'border-border hover:border-indigo-500/50 hover:bg-surface2/40',
+        'bg-card border-[1.5px] border-dashed rounded-2xl px-6 py-[52px] flex flex-col items-center text-center transition-colors',
+        dragOver ? 'border-primary bg-primary/5' : 'border-hover-border',
       )}
     >
+      <span className="w-12 h-12 rounded-[14px] bg-primary/14 flex items-center justify-center">
+        <UploadIcon className="text-primary-lt" />
+      </span>
+      <h2 className="mt-4 mb-1 font-space font-semibold text-[17px] text-text">Drop your resume here</h2>
+      <p className="m-0 mb-[18px] text-sm text-muted max-w-[46ch] text-pretty">
+        PDF or DOCX, up to 5 MB. You&apos;ll get a readiness score and the exact fixes that raise it — usually in under 30 seconds.
+      </p>
+      <div
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' || e.key === ' ' ? inputRef.current?.click() : undefined}
+        onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
+        className="h-11 px-[18px] rounded-[10px] bg-primary text-white text-sm font-semibold cursor-pointer hover:bg-primary-hover active:bg-primary-active transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-hover"
+      >
+        Choose a file
+      </div>
       <input
         ref={inputRef}
         type="file"
@@ -221,31 +198,53 @@ function UploadZone({ onFile }: { onFile: (f: File) => void }) {
         aria-hidden="true"
         tabIndex={-1}
       />
-      <div className="text-4xl mb-3" aria-hidden="true">📄</div>
-      <p className="font-semibold text-text">Drop your resume here or click to browse</p>
-      <p className="text-sm text-muted mt-1">PDF only · max 5 MB</p>
-    </div>
+      <div className="mt-4 text-xs text-dim">Your file is analyzed and stored privately. Delete it anytime.</div>
+    </section>
   );
 }
 
-// ── Polling overlay ───────────────────────────────────────────────────────────
-function PollingOverlay({ message }: { message: string }) {
+function PollingOverlay({ message, step }: { message: string; step: number }) {
   return (
     <div
       role="status"
       aria-live="polite"
-      aria-label="Analysing resume"
-      className="fixed inset-0 z-50 bg-bg/90 backdrop-blur-sm flex flex-col items-center justify-center gap-6"
+      aria-label="Analyzing resume"
+      className="fixed inset-0 z-50 bg-bg/88 backdrop-blur-sm flex items-center justify-center p-4"
     >
-      <VortexLoader size={56} label={message} />
-      <p className="text-xs text-muted max-w-xs text-center">
-        This usually takes 5–15 seconds. Stay on this page.
-      </p>
+      <section className="bg-card border border-border rounded-2xl min-h-[320px] w-full max-w-lg flex flex-col items-center justify-center gap-5 px-6 py-10">
+        <VortexLoader size="xl" label={message} />
+        <div className="flex flex-col gap-2 min-w-[min(360px,100%)]">
+          {POLL_STEPS.map((label, i) => (
+            <div
+              key={label}
+              className={cn(
+                'flex items-center gap-2.5 text-[13.5px]',
+                i < step ? 'text-muted' : i === step ? 'text-text' : 'text-dim',
+              )}
+            >
+              {i < step ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4.5 12.5l5 5L19.5 7" />
+                </svg>
+              ) : i === step ? (
+                <span aria-hidden="true" className="w-3.5 h-3.5 flex items-center justify-center">
+                  <span className="w-[7px] h-[7px] rounded-full bg-primary" />
+                </span>
+              ) : (
+                <span aria-hidden="true" className="w-3.5 h-3.5 flex items-center justify-center">
+                  <span className="w-[5px] h-[5px] rounded-full bg-hover-border" />
+                </span>
+              )}
+              {label}
+            </div>
+          ))}
+        </div>
+        <div className="text-[12.5px] text-dim">Usually 20–30 seconds. You can leave — we&apos;ll save the result.</div>
+      </section>
     </div>
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
 export default function ResumePage() {
   const router = useRouter();
   const [resumes, setResumes] = useState<ResumeResponse[]>([]);
@@ -254,6 +253,7 @@ export default function ResumePage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
   const [pollMsg, setPollMsg] = useState(POLL_MESSAGES[0]);
+  const [pollStep, setPollStep] = useState(0);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const msgRef = useRef(0);
 
@@ -272,12 +272,12 @@ export default function ResumePage() {
     return () => { if (pollRef.current) clearTimeout(pollRef.current); };
   }, [load]);
 
-  // Message rotation during polling
   useEffect(() => {
-    if (!polling) { msgRef.current = 0; return; }
+    if (!polling) { msgRef.current = 0; setPollStep(0); return; }
     const interval = setInterval(() => {
       msgRef.current = (msgRef.current + 1) % POLL_MESSAGES.length;
       setPollMsg(POLL_MESSAGES[msgRef.current]);
+      setPollStep((s) => Math.min(s + 1, POLL_STEPS.length - 1));
     }, 3000);
     return () => clearInterval(interval);
   }, [polling]);
@@ -293,15 +293,12 @@ export default function ResumePage() {
         return;
       }
     }
-    // Timeout — still navigate to results page so user can see partial state
     setPolling(false);
     router.push(`/resume/${resumeId}`);
   }
 
   async function handleFile(file: File) {
     setUploadError(null);
-
-    // Client-side guards (first line of defence before server validates)
     if (file.type !== 'application/pdf') {
       setUploadError('Only PDF files are accepted. Please choose a .pdf file.');
       return;
@@ -330,96 +327,75 @@ export default function ResumePage() {
   const activeResume = resumes.find((r) => r.active);
   const otherResumes = resumes.filter((r) => !r.active);
 
+  const subline = loading
+    ? 'Loading…'
+    : error
+      ? 'Could not load resumes'
+      : resumes.length === 0
+        ? 'No resume yet — your first upload is the fastest score gain available'
+        : `${resumes.length} version${resumes.length === 1 ? '' : 's'} analyzed · readiness signals, not a company ATS`;
+
   return (
     <>
-      {polling && <PollingOverlay message={pollMsg} />}
+      {polling && <PollingOverlay message={pollMsg} step={pollStep} />}
 
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="font-space text-2xl font-bold text-text">Resume Readiness</h1>
-            <p className="text-muted mt-1 text-sm">
-              Upload your resume to get readiness signals — not a guarantee, a direction.
-            </p>
+      <div className="w-full max-w-content mx-auto flex flex-col gap-4">
+        <div className="flex items-end gap-3.5 flex-wrap">
+          <div className="flex-1 min-w-[220px]">
+            <h1 className="m-0 font-space font-semibold text-[21px] text-text">Resume analyzer</h1>
+            <div className="text-[13px] text-dim mt-0.5">{subline}</div>
           </div>
+          {!loading && resumes.length > 0 && (
+            <label className="inline-flex items-center gap-2 h-11 px-[18px] rounded-[10px] bg-primary text-white text-sm font-semibold cursor-pointer hover:bg-primary-hover active:bg-primary-active transition-colors whitespace-nowrap">
+              <UploadIcon className="w-[15px] h-[15px]" />
+              Upload new version
+              <input
+                type="file"
+                accept="application/pdf"
+                className="sr-only"
+                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+              />
+            </label>
+          )}
         </div>
 
-        {/* Upload error */}
         {uploadError && (
-          <div role="alert" className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-400">
-            {uploadError}
-            <button
-              onClick={() => setUploadError(null)}
-              className="ml-3 underline hover:no-underline text-xs"
-              aria-label="Dismiss error"
-            >
+          <div role="alert" className="bg-error/10 border border-error/30 rounded-xl px-4 py-3 text-sm text-error flex items-start justify-between gap-3">
+            <span>{uploadError}</span>
+            <button onClick={() => setUploadError(null)} className="text-xs underline hover:no-underline shrink-0" aria-label="Dismiss error">
               Dismiss
             </button>
           </div>
         )}
 
-        {/* Loading skeletons */}
         {loading && (
           <div className="space-y-4">
             <ResumeSkeleton />
             <ResumeSkeleton />
-            <ResumeSkeleton />
           </div>
         )}
 
-        {/* Error state */}
         {!loading && error && (
-          <div role="alert" className="bg-red-500/10 border border-red-500/30 rounded-xl px-5 py-4 text-sm text-red-400">
+          <div role="alert" className="bg-error/10 border border-error/30 rounded-xl px-5 py-4 text-sm text-error">
             {error}
           </div>
         )}
 
-        {/* Empty state */}
         {!loading && !error && resumes.length === 0 && (
-          <div className="bg-surface rounded-xl border border-border p-8 text-center">
-            <div className="text-5xl mb-4" aria-hidden="true">📋</div>
-            <h2 className="font-space font-semibold text-lg text-text">Upload your first resume</h2>
-            <p className="text-muted text-sm mt-2 max-w-sm mx-auto">
-              We&apos;ll scan it for readiness signals — keywords, impact, formatting — and show you
-              the fastest improvements.
-            </p>
-            <div className="mt-6">
-              <UploadZone onFile={handleFile} />
-            </div>
-          </div>
+          <UploadZone onFile={handleFile} />
         )}
 
-        {/* Upload zone (when resumes exist) */}
-        {!loading && !error && resumes.length > 0 && (
-          <section aria-label="Upload new resume">
-            <h2 className="text-sm font-medium text-muted mb-3 uppercase tracking-wider">
-              Upload / Replace
-            </h2>
-            <UploadZone onFile={handleFile} />
-          </section>
-        )}
-
-        {/* Active resume */}
-        {!loading && activeResume && (
-          <section aria-label="Active resume">
-            <h2 className="text-sm font-medium text-muted mb-3 uppercase tracking-wider flex items-center gap-2">
-              Active Resume
-              <span className="text-xs text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full font-normal normal-case">
-                ● In use
-              </span>
-            </h2>
-            <ResumeCard resume={activeResume} onDelete={handleDelete} />
-          </section>
-        )}
-
-        {/* Other resumes */}
-        {!loading && otherResumes.length > 0 && (
-          <section aria-label="Previous resumes">
-            <h2 className="text-sm font-medium text-muted mb-3 uppercase tracking-wider">Previous Versions</h2>
-            <div className="space-y-3">
+        {!loading && (activeResume || otherResumes.length > 0) && (
+          <section aria-label="Versions" className="bg-card border border-border rounded-[14px] px-5 py-[18px]">
+            <h2 className="m-0 mb-1 font-space font-semibold text-[15px] text-text">Versions</h2>
+            <div className="flex flex-col">
+              {activeResume && (
+                <ResumeCard resume={activeResume} onDelete={handleDelete} />
+              )}
               {otherResumes.map((r) => (
-                <ResumeCard key={r.id} resume={r} onDelete={handleDelete} />
+                <div key={r.id} className="border-t border-inner">
+                  <ResumeCard resume={r} onDelete={handleDelete} />
+                </div>
               ))}
             </div>
           </section>

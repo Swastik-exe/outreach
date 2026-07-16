@@ -2,12 +2,18 @@
 
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth';
+import {
+  AuthShell,
+  AuthTabs,
+  AuthDivider,
+  authInputClass,
+  authLabelClass,
+  authPrimaryBtnClass,
+} from '@/components/AuthShell';
 
 export default function RegisterPage() {
   const { register } = useAuth();
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -29,91 +35,98 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <main className="min-h-screen bg-[#0A0B0E] flex items-center justify-center p-4">
-        <div className="w-full max-w-sm text-center">
-          <div className="text-4xl mb-4">📬</div>
-          <h1 className="text-xl font-bold text-white mb-2">Check your email</h1>
-          <p className="text-[#8B8FA8] text-sm mb-6">
-            We sent a verification link to <strong className="text-[#F4F5F7]">{email}</strong>.
-            Open the link in your inbox (check spam too). It expires in 24 hours.
+      <AuthShell>
+        <div className="flex flex-col items-center text-center">
+          <span className="w-[46px] h-[46px] rounded-[13px] bg-[rgba(45,212,191,0.12)] flex items-center justify-center">
+            <svg
+              width="21"
+              height="21"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#2DD4BF"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3.5 6.5A1.5 1.5 0 0 1 5 5h14a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5Z M3.5 7l8.5 6 8.5-6" />
+            </svg>
+          </span>
+          <h1 className="m-0 mt-4 font-space font-semibold text-[19px]">Check your inbox</h1>
+          <p className="m-0 mt-1 text-sm text-muted max-w-[38ch]" style={{ textWrap: 'pretty' }}>
+            We sent a verification link to{' '}
+            <span className="text-text font-semibold">{email}</span>. It expires in 24 hours.
           </p>
           <Link
             href={`/verify-email?email=${encodeURIComponent(email)}`}
-            className="inline-block text-indigo-400 hover:text-indigo-300 text-sm transition-colors"
+            className={`${authPrimaryBtnClass} mt-5 flex items-center justify-center no-underline`}
           >
-            Resend or enter token manually →
+            Resend or enter token
+          </Link>
+          <Link
+            href="/login"
+            className="mt-4 text-[12.5px] text-dim hover:text-muted no-underline"
+          >
+            Back to sign in
           </Link>
         </div>
-      </main>
+      </AuthShell>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#0A0B0E] flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <span className="text-2xl font-bold tracking-tight text-white">
-            out<span className="text-indigo-400">reach</span>
-          </span>
-          <p className="text-[#8B8FA8] text-sm mt-2">Create your account</p>
-        </div>
+    <AuthShell>
+      <AuthTabs active="register" />
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-[#111318] border border-[#2A2D36] rounded-xl p-6 space-y-4"
-          noValidate
-        >
-          {error && (
-            <div role="alert" className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
-              {error}
-            </div>
-          )}
+      <AuthDivider />
 
-          <div className="space-y-1.5">
-            <label htmlFor="email" className="block text-sm font-medium text-[#F4F5F7]">Email</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg bg-[#1A1D24] border border-[#2A2D36] px-3 py-2.5 text-sm text-[#F4F5F7] placeholder-[#4B4F63] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors min-h-[44px]"
-              placeholder="you@college.edu"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="password" className="block text-sm font-medium text-[#F4F5F7]">Password</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg bg-[#1A1D24] border border-[#2A2D36] px-3 py-2.5 text-sm text-[#F4F5F7] placeholder-[#4B4F63] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors min-h-[44px]"
-              placeholder="Min. 8 characters"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111318]"
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
+        {error && (
+          <div
+            role="alert"
+            className="rounded-[10px] bg-[rgba(251,113,133,0.10)] border border-[rgba(251,113,133,0.28)] px-3.5 py-3 text-[13.5px] text-error"
           >
-            {loading ? 'Creating account…' : 'Create account'}
-          </button>
-        </form>
+            {error}
+          </div>
+        )}
 
-        <p className="text-center text-sm text-[#8B8FA8] mt-4">
-          Already have an account?{' '}
-          <Link href="/login" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-            Sign in
-          </Link>
-        </p>
-      </div>
-    </main>
+        <label>
+          <span className={authLabelClass}>Email</span>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={authInputClass}
+            placeholder="you@example.com"
+          />
+        </label>
+
+        <label>
+          <span className={authLabelClass}>Password</span>
+          <input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={authInputClass}
+            placeholder="At least 8 characters"
+          />
+        </label>
+
+        <button type="submit" disabled={loading} className={`${authPrimaryBtnClass} mt-1`}>
+          {loading ? 'Creating account…' : 'Create account'}
+        </button>
+
+        <div className="mt-1 text-xs text-dim text-center" style={{ textWrap: 'pretty' }}>
+          Any email works · free forever plan · no card needed
+        </div>
+      </form>
+    </AuthShell>
   );
 }

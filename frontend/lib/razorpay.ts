@@ -47,7 +47,7 @@ export async function openRazorpayCheckout(opts: RazorpayOpenOptions): Promise<v
     name: 'Outreach',
     description: 'Career platform subscription',
     prefill: { email: opts.email, name: opts.name ?? 'Outreach User' },
-    theme: { color: '#6366F1' },
+    theme: { color: '#7C3AED' },
     handler: () => opts.onSuccess(),
     modal: { ondismiss: () => opts.onDismiss?.() },
   };

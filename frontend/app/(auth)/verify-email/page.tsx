@@ -4,6 +4,13 @@ import { Suspense, useState, useEffect, useRef, useCallback, type FormEvent } fr
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { VortexLoader } from '@/components/VortexLoader';
+import {
+  AuthShell,
+  authInputClass,
+  authLabelClass,
+  authPrimaryBtnClass,
+} from '@/components/AuthShell';
 
 function VerifyForm() {
   const searchParams = useSearchParams();
@@ -17,22 +24,24 @@ function VerifyForm() {
   const [resending, setResending] = useState(false);
   const autoVerifyRan = useRef(false);
 
-  const verifyToken = useCallback(async (rawToken: string) => {
-    const trimmed = rawToken.trim();
-    if (!trimmed) return;
-    setStatus('loading');
-    setErrorMsg('');
-    const res = await api.post('/auth/verify-email', { token: trimmed });
-    if (res.success) {
-      setStatus('success');
-      setTimeout(() => router.push('/login'), 2000);
-    } else {
-      setStatus('error');
-      setErrorMsg(res.error ?? 'Verification failed');
-    }
-  }, [router]);
+  const verifyToken = useCallback(
+    async (rawToken: string) => {
+      const trimmed = rawToken.trim();
+      if (!trimmed) return;
+      setStatus('loading');
+      setErrorMsg('');
+      const res = await api.post('/auth/verify-email', { token: trimmed });
+      if (res.success) {
+        setStatus('success');
+        setTimeout(() => router.push('/login?verified=1'), 2000);
+      } else {
+        setStatus('error');
+        setErrorMsg(res.error ?? 'Verification failed');
+      }
+    },
+    [router],
+  );
 
-  // Auto-verify when user clicks the link in their email (token in URL).
   useEffect(() => {
     const urlToken = searchParams.get('token');
     if (urlToken && !autoVerifyRan.current) {
@@ -58,94 +67,120 @@ function VerifyForm() {
     const res = await api.post('/auth/resend-verification', { email: email.trim() });
     setResending(false);
     if (res.success) {
-      setResendMsg('If that email is registered and unverified, we sent a new link. Check your inbox and spam folder.');
+      setResendMsg('Sent — check spam too.');
     } else {
       setResendMsg(res.error ?? 'Could not resend. Try again.');
     }
   }
 
   return (
-    <main className="min-h-screen bg-[#0A0B0E] flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <span className="text-2xl font-bold tracking-tight text-white">
-            out<span className="text-indigo-400">reach</span>
-          </span>
-          <p className="text-[#8B8FA8] text-sm mt-2">Verify your email</p>
+    <AuthShell>
+      {status === 'success' ? (
+        <div className="flex flex-col items-center text-center">
+          <h1 className="m-0 font-space font-semibold text-[19px]">Email verified</h1>
+          <p className="m-0 mt-1.5 text-[13.5px] text-muted">Redirecting to sign in…</p>
         </div>
+      ) : status === 'loading' && token ? (
+        <div className="flex flex-col items-center text-center py-4">
+          <VortexLoader size="lg" label="Verifying your email…" />
+        </div>
+      ) : (
+        <div className="flex flex-col items-center text-center">
+          <span className="w-[46px] h-[46px] rounded-[13px] bg-[rgba(45,212,191,0.12)] flex items-center justify-center">
+            <svg
+              width="21"
+              height="21"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#2DD4BF"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3.5 6.5A1.5 1.5 0 0 1 5 5h14a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5Z M3.5 7l8.5 6 8.5-6" />
+            </svg>
+          </span>
+          <h1 className="m-0 mt-4 font-space font-semibold text-[19px]">Check your inbox</h1>
+          <p className="m-0 mt-1 text-sm text-muted max-w-[38ch]" style={{ textWrap: 'pretty' }}>
+            {email ? (
+              <>
+                We sent a verification link to{' '}
+                <span className="text-text font-semibold">{email}</span>. Open it, or paste the
+                token below.
+              </>
+            ) : (
+              <>Open the link in your email, or paste the verification token below.</>
+            )}
+          </p>
 
-        {status === 'success' ? (
-          <div className="text-center bg-[#111318] border border-[#2A2D36] rounded-xl p-6">
-            <div className="text-3xl mb-3">✅</div>
-            <p className="text-[#F4F5F7] font-medium">Email verified!</p>
-            <p className="text-[#8B8FA8] text-sm mt-1">Redirecting to login…</p>
-          </div>
-        ) : status === 'loading' && token ? (
-          <div className="text-center bg-[#111318] border border-[#2A2D36] rounded-xl p-6">
-            <p className="text-[#F4F5F7] font-medium">Verifying your email…</p>
-            <p className="text-[#8B8FA8] text-sm mt-1">This only takes a moment.</p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="bg-[#111318] border border-[#2A2D36] rounded-xl p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="w-full mt-5 flex flex-col gap-3 text-left">
             {status === 'error' && (
-              <div role="alert" className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+              <div
+                role="alert"
+                className="rounded-[10px] bg-[rgba(251,113,133,0.10)] border border-[rgba(251,113,133,0.28)] px-3.5 py-3 text-[13.5px] text-error"
+              >
                 {errorMsg}
               </div>
             )}
-            <div className="space-y-1.5">
-              <label htmlFor="token" className="block text-sm font-medium text-[#F4F5F7]">
-                Verification token
-              </label>
+
+            <label>
+              <span className={authLabelClass}>Verification token</span>
               <input
                 id="token"
                 type="text"
                 required
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
-                className="w-full rounded-lg bg-[#1A1D24] border border-[#2A2D36] px-3 py-2.5 text-sm text-[#F4F5F7] placeholder-[#4B4F63] focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono min-h-[44px]"
+                className={`${authInputClass} font-mono`}
                 placeholder="Paste your verification token"
               />
-              <p className="text-xs text-[#4B4F63]">
-                Open the link in your email, or paste the token here.
-              </p>
-            </div>
+            </label>
+
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-medium text-sm transition-colors min-h-[44px]"
+              className={authPrimaryBtnClass}
             >
-              {status === 'loading' ? 'Verifying…' : 'Verify email'}
+              {status === 'loading' ? 'Verifying…' : 'Verify and continue'}
             </button>
           </form>
-        )}
 
-        <form onSubmit={handleResend} className="mt-4 bg-[#111318] border border-[#2A2D36] rounded-xl p-4 space-y-3">
-          <p className="text-xs text-[#8B8FA8]">Didn&apos;t get the email?</p>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
-            className="w-full rounded-lg bg-[#1A1D24] border border-[#2A2D36] px-3 py-2 text-sm text-[#F4F5F7] min-h-[44px]"
-          />
-          <button
-            type="submit"
-            disabled={resending}
-            className="w-full py-2 text-sm text-indigo-400 hover:text-indigo-300 disabled:opacity-50"
+          <form onSubmit={handleResend} className="w-full mt-4 text-left">
+            <p className="text-[13px] text-dim mb-2">
+              Didn&apos;t get it?{' '}
+              <button
+                type="submit"
+                disabled={resending}
+                className="border-none bg-transparent text-primary-lt font-semibold text-[13px] cursor-pointer p-0 hover:text-[#C4B5FD] disabled:opacity-50"
+              >
+                {resending ? 'Sending…' : resendMsg || 'Resend'}
+              </button>
+            </p>
+            {!emailParam && (
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className={authInputClass}
+              />
+            )}
+            {resendMsg && resendMsg !== 'Sent — check spam too.' && (
+              <p className="text-xs text-dim mt-2">{resendMsg}</p>
+            )}
+          </form>
+
+          <Link
+            href="/login"
+            className="mt-3 text-[12.5px] text-dim hover:text-muted no-underline"
           >
-            {resending ? 'Sending…' : 'Resend verification email'}
-          </button>
-          {resendMsg && <p className="text-xs text-[#8B8FA8]">{resendMsg}</p>}
-        </form>
-
-        <p className="text-center text-sm text-[#8B8FA8] mt-4">
-          <Link href="/login" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-            ← Back to login
+            Wrong address? Back to sign in
           </Link>
-        </p>
-      </div>
-    </main>
+        </div>
+      )}
+    </AuthShell>
   );
 }
 

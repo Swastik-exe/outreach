@@ -5,6 +5,13 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import type { ResetPasswordRequest } from '@/lib/types';
+import {
+  AuthShell,
+  authInputClass,
+  authLabelClass,
+  authPrimaryBtnClass,
+  authSecondaryBtnClass,
+} from '@/components/AuthShell';
 
 function ResetForm() {
   const searchParams = useSearchParams();
@@ -46,59 +53,47 @@ function ResetForm() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0A0B0E] flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <span className="text-2xl font-bold tracking-tight text-white">
-            out<span className="text-indigo-400">reach</span>
-          </span>
-          <p className="text-[#8B8FA8] text-sm mt-2">Choose a new password</p>
+    <AuthShell>
+      {status === 'success' ? (
+        <div className="text-center">
+          <h1 className="m-0 font-space font-semibold text-[19px]">Password reset</h1>
+          <p className="m-0 mt-1.5 text-[13.5px] text-muted">Redirecting to sign in…</p>
         </div>
+      ) : (
+        <>
+          <h1 className="m-0 font-space font-semibold text-[19px]">Choose a new password</h1>
+          <p className="m-0 mt-1.5 text-[13.5px] text-muted">
+            Pick something you&apos;ll remember. Your account and data stay exactly as they were.
+          </p>
 
-        {status === 'success' ? (
-          <div className="text-center bg-[#111318] border border-[#2A2D36] rounded-xl p-6">
-            <div className="text-3xl mb-3">✅</div>
-            <p className="text-[#F4F5F7] font-medium">Password reset!</p>
-            <p className="text-[#8B8FA8] text-sm mt-1">Redirecting to login…</p>
-          </div>
-        ) : (
-          <form
-            onSubmit={handleSubmit}
-            className="bg-[#111318] border border-[#2A2D36] rounded-xl p-6 space-y-4"
-            noValidate
-          >
+          <form onSubmit={handleSubmit} className="mt-[18px] flex flex-col gap-3" noValidate>
             {status === 'error' && (
               <div
                 role="alert"
-                className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400"
+                className="rounded-[10px] bg-[rgba(251,113,133,0.10)] border border-[rgba(251,113,133,0.28)] px-3.5 py-3 text-[13.5px] text-error"
               >
                 {errorMsg}
               </div>
             )}
 
-            <div className="space-y-1.5">
-              <label htmlFor="token" className="block text-sm font-medium text-[#F4F5F7]">
-                Reset token
-              </label>
+            <label>
+              <span className={authLabelClass}>Reset token</span>
               <input
                 id="token"
                 type="text"
                 required
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
-                className="w-full rounded-lg bg-[#1A1D24] border border-[#2A2D36] px-3 py-2.5 text-sm text-[#F4F5F7] placeholder-[#4B4F63] focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono min-h-[44px]"
+                className={`${authInputClass} font-mono`}
                 placeholder="Paste your reset token"
               />
-              <p className="text-xs text-[#4B4F63]">
-                This should be filled in automatically from the link in your email.
+              <p className="mt-1.5 text-xs text-dim">
+                Filled automatically from the link in your email.
               </p>
-            </div>
+            </label>
 
-            <div className="space-y-1.5">
-              <label htmlFor="newPassword" className="block text-sm font-medium text-[#F4F5F7]">
-                New password
-              </label>
+            <label>
+              <span className={authLabelClass}>New password</span>
               <input
                 id="newPassword"
                 type="password"
@@ -107,15 +102,13 @@ function ResetForm() {
                 minLength={8}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full rounded-lg bg-[#1A1D24] border border-[#2A2D36] px-3 py-2.5 text-sm text-[#F4F5F7] placeholder-[#4B4F63] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors min-h-[44px]"
-                placeholder="Min. 8 characters"
+                className={authInputClass}
+                placeholder="At least 8 characters"
               />
-            </div>
+            </label>
 
-            <div className="space-y-1.5">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#F4F5F7]">
-                Confirm new password
-              </label>
+            <label>
+              <span className={authLabelClass}>Confirm password</span>
               <input
                 id="confirmPassword"
                 type="password"
@@ -124,28 +117,29 @@ function ResetForm() {
                 minLength={8}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full rounded-lg bg-[#1A1D24] border border-[#2A2D36] px-3 py-2.5 text-sm text-[#F4F5F7] placeholder-[#4B4F63] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors min-h-[44px]"
-                placeholder="••••••••"
+                className={authInputClass}
+                placeholder="Repeat password"
               />
-            </div>
+            </label>
 
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111318]"
+              className={authPrimaryBtnClass}
             >
               {status === 'loading' ? 'Resetting…' : 'Reset password'}
             </button>
-          </form>
-        )}
 
-        <p className="text-center text-sm text-[#8B8FA8] mt-4">
-          <Link href="/login" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-            ← Back to login
-          </Link>
-        </p>
-      </div>
-    </main>
+            <Link
+              href="/login"
+              className={`${authSecondaryBtnClass} flex items-center justify-center no-underline`}
+            >
+              Back to sign in
+            </Link>
+          </form>
+        </>
+      )}
+    </AuthShell>
   );
 }
 

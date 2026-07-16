@@ -21,9 +21,33 @@ import type {
   UpdateApplicationRequest,
 } from '@/lib/types';
 import { StatusBadge } from '@/components/tracker/StatusBadge';
-import { ApplicationSkeleton } from '@/components/tracker/ApplicationSkeleton';
+import { ApplicationListSkeleton } from '@/components/tracker/ApplicationSkeleton';
 import { ErrorState } from '@/components/tracker/TrackerStates';
 import { cn } from '@/lib/utils';
+
+function timelineDotColor(status: string): string {
+  if (['rejected', 'ghosted', 'withdrawn', 'offer_declined'].includes(status)) {
+    return '#64748B';
+  }
+  if (['offer_received', 'offer_accepted'].includes(status)) {
+    return '#10B981';
+  }
+  if (
+    [
+      'interview_scheduled',
+      'interview_done',
+      'technical_round',
+      'hr_round',
+      'shortlisted',
+    ].includes(status)
+  ) {
+    return '#2DD4BF';
+  }
+  if (['pending_oa', 'oa_submitted'].includes(status)) {
+    return '#F59E0B';
+  }
+  return '#8B5CF6';
+}
 
 export default function ApplicationDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -156,282 +180,395 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
   }
 
   if (loading) {
-    return (
-      <div className="max-w-2xl mx-auto space-y-4">
-        <ApplicationSkeleton />
-        <ApplicationSkeleton />
-      </div>
-    );
+    return <ApplicationListSkeleton count={3} />;
   }
 
   if (error || !app) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="flex flex-col gap-4">
         <ErrorState message={error ?? 'Application not found.'} onRetry={load} />
-        <Link href="/tracker" className="mt-4 inline-block text-sm text-primary-lt hover:underline">
-          ← Back to tracker
+        <Link
+          href="/tracker"
+          className="inline-flex items-center gap-1.5 text-[13.5px] font-medium text-muted transition-colors hover:text-text"
+        >
+          <BackIcon />
+          All applications
         </Link>
       </div>
     );
   }
 
+  const subtitleParts = [
+    `Applied ${fmtDate(app.appliedDate)}`,
+    app.source.replace(/_/g, ' '),
+    app.priority,
+  ].filter(Boolean);
+
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-      <header>
+    <div className="flex flex-col gap-4">
+      <div>
         <Link
           href="/tracker"
-          className="text-sm text-muted hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
-        >
-          ← Back to tracker
-        </Link>
-        <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold font-space text-text">{app.company}</h1>
-            <p className="text-muted mt-1">{app.role}</p>
-          </div>
-          <StatusBadge status={app.currentStatus} />
-        </div>
-        <dl className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-          <Meta label="Applied">{fmtDate(app.appliedDate)}</Meta>
-          <Meta label="Source">{app.source.replace(/_/g, ' ')}</Meta>
-          <Meta label="Priority">{app.priority}</Meta>
-          {app.nextActionDue && (
-            <Meta label="Follow-up due">{fmtDate(app.nextActionDue)}</Meta>
+          className={cn(
+            'inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 -ml-2.5',
+            'text-[13.5px] font-medium text-muted transition-colors',
+            'hover:bg-card hover:text-text',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
           )}
-        </dl>
+        >
+          <BackIcon />
+          All applications
+        </Link>
+      </div>
+
+      <header className="flex flex-wrap items-start gap-3.5">
+        <div className="min-w-[240px] flex-1">
+          <h1 className="font-space text-[21px] font-semibold text-text">
+            {app.company} · {app.role}
+          </h1>
+          <p className="mt-1 text-[13px] text-dim">{subtitleParts.join(' · ')}</p>
+        </div>
+        <StatusBadge status={app.currentStatus} />
       </header>
 
-      {/* Status change */}
-      {!isTerminal && (
-        <section className="rounded-xl border border-border bg-surface p-4 sm:p-5">
-          <h2 className="font-medium text-text">Update status</h2>
-          <p className="text-sm text-muted mt-1">
-            Each change is recorded in your timeline — progress at your own pace.
-          </p>
-          <form onSubmit={handleStatusSubmit} className="mt-4 space-y-3">
-            <label className="block">
-              <span className="text-xs text-muted">New status</span>
-              <select
-                value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value)}
-                className={inputCls}
-              >
-                {APP_STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {getStatusMeta(s).label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="text-xs text-muted">Notes (optional)</span>
-              <input
-                value={statusNotes}
-                onChange={(e) => setStatusNotes(e.target.value)}
-                className={inputCls}
-                placeholder="e.g. Recruiter replied, OA link received"
-              />
-            </label>
-            {statusError && (
-              <p className="text-sm text-orange-400" role="alert">
-                {statusError}
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={statusBusy || newStatus === app.currentStatus}
-              className={btnPrimary}
+      {app.nextActionDue && (
+        <section
+          aria-label="Follow-up"
+          className="flex flex-wrap items-center gap-3.5 rounded-[14px] border border-primary-lt/35 bg-[linear-gradient(0deg,rgba(124,58,237,0.08),rgba(124,58,237,0.08)),#111827] px-[18px] py-4"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-primary/20">
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#A78BFA"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
             >
-              {statusBusy ? 'Updating…' : 'Update status'}
-            </button>
-          </form>
+              <path d="M12 21a9 9 0 1 0-9-9 M12 7v5l3.5 2 M3 12h.01" />
+            </svg>
+          </span>
+          <div className="min-w-[220px] flex-1">
+            <div className="text-[14.5px] font-semibold text-text">
+              {app.nextAction ?? 'Follow-up reminder'}
+            </div>
+            <div className="text-[13px] text-muted">
+              Due {fmtDate(app.nextActionDue)}
+            </div>
+          </div>
         </section>
       )}
 
-      {/* Timeline */}
-      <section aria-labelledby="timeline-heading">
-        <h2 id="timeline-heading" className="font-medium font-space text-text">
-          Timeline
-        </h2>
-        <p className="text-sm text-muted mt-1">Newest first — your journey, recorded.</p>
-        {timeline.length === 0 ? (
-          <p className="text-sm text-muted mt-4">No timeline entries yet.</p>
-        ) : (
-          <ol className="mt-4 space-y-3" aria-label="Application timeline">
-            {timeline.map((entry) => (
-              <li
-                key={entry.id}
-                className="relative pl-4 border-l-2 border-border"
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(300px,1fr)]">
+        {/* Timeline */}
+        <section
+          aria-labelledby="timeline-heading"
+          className="rounded-[14px] border border-border bg-card px-5 py-[18px]"
+        >
+          <div className="flex items-baseline gap-2.5">
+            <h2
+              id="timeline-heading"
+              className="font-space text-[15px] font-semibold text-text"
+            >
+              Timeline
+            </h2>
+            <span className="ml-auto inline-flex items-center gap-1 text-[11.5px] text-dim">
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
               >
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge status={entry.status} />
-                  <time className="text-xs text-muted" dateTime={entry.occurredAt}>
-                    {fmtDateTime(entry.occurredAt)}
-                  </time>
-                </div>
-                {entry.notes && (
-                  <p className="text-sm text-muted mt-1">{entry.notes}</p>
-                )}
-              </li>
-            ))}
-          </ol>
-        )}
-      </section>
+                <path d="M6 10V8a6 6 0 1 1 12 0v2 M5 10h14v10H5Z" />
+              </svg>
+              Permanent record
+            </span>
+          </div>
 
-      {/* Edit details */}
-      <section className="rounded-xl border border-border bg-surface p-4 sm:p-5">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="font-medium text-text">Details</h2>
-          {!editing && (
-            <button type="button" onClick={() => setEditing(true)} className={btnSecondary}>
-              Edit
-            </button>
+          {timeline.length === 0 ? (
+            <p className="mt-4 text-sm text-dim">No timeline entries yet.</p>
+          ) : (
+            <ol className="mt-3.5 flex flex-col" aria-label="Application timeline">
+              {timeline.map((entry, i) => (
+                <li key={entry.id} className="flex gap-3.5">
+                  <span className="flex flex-col items-center">
+                    <span
+                      aria-hidden="true"
+                      className="mt-1 h-[9px] w-[9px] shrink-0 rounded-full"
+                      style={{ backgroundColor: timelineDotColor(entry.status) }}
+                    />
+                    {i < timeline.length - 1 && (
+                      <span
+                        aria-hidden="true"
+                        className="my-1 w-[1.5px] flex-1 bg-border"
+                      />
+                    )}
+                  </span>
+                  <span
+                    className={cn('flex-1', i < timeline.length - 1 ? 'pb-4' : 'pb-1')}
+                  >
+                    <span className="block text-[13.5px] font-semibold text-text">
+                      {getStatusMeta(entry.status).label}
+                      {entry.notes ? ` — ${entry.notes}` : ''}
+                    </span>
+                    <time
+                      className="mt-0.5 block text-[11.5px] text-dim"
+                      dateTime={entry.occurredAt}
+                    >
+                      {fmtDateTime(entry.occurredAt)}
+                    </time>
+                  </span>
+                </li>
+              ))}
+            </ol>
           )}
-        </div>
-        {editing ? (
-          <form onSubmit={handleEditSubmit} className="mt-4 space-y-3">
-            <EditField label="Company" name="company" defaultValue={app.company} />
-            <EditField label="Role" name="role" defaultValue={app.role} />
-            <EditField
-              label="Applied date"
-              name="appliedDate"
-              type="date"
-              defaultValue={app.appliedDate}
-            />
-            <EditField label="Job URL" name="jobUrl" defaultValue={app.jobUrl ?? ''} />
-            <label className="block">
-              <span className="text-xs text-muted">Priority</span>
-              <select
-                name="priority"
-                defaultValue={app.priority}
-                className={inputCls}
-              >
-                {PRIORITY_OPTIONS.map((p) => (
-                  <option key={p} value={p}>
-                    {p.charAt(0).toUpperCase() + p.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="text-xs text-muted">Notes</span>
-              <textarea
-                name="notes"
-                defaultValue={app.notes ?? ''}
-                rows={3}
-                className={cn(inputCls, 'min-h-[88px] resize-y')}
-              />
-            </label>
-            {editError && (
-              <p className="text-sm text-orange-400" role="alert">
-                {editError}
-              </p>
+          <p className="mt-1.5 border-t border-inner pt-3 text-xs text-dim">
+            Entries can&apos;t be edited or deleted — an honest record is the point.
+          </p>
+        </section>
+
+        <div className="flex flex-col gap-4">
+          {/* Log an update */}
+          {!isTerminal && (
+            <section
+              aria-label="Log an update"
+              className="rounded-[14px] border border-border bg-card px-5 py-[18px]"
+            >
+              <h2 className="mb-3 font-space text-[15px] font-semibold text-text">
+                Log an update
+              </h2>
+              <form onSubmit={handleStatusSubmit} className="space-y-3.5">
+                <label className="block">
+                  <span className="mb-1.5 block text-[12.5px] font-semibold text-muted">
+                    New status
+                  </span>
+                  <select
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    className={inputCls}
+                  >
+                    {APP_STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {getStatusMeta(s).label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-[12.5px] font-semibold text-muted">
+                    Or write your own
+                  </span>
+                  <textarea
+                    value={statusNotes}
+                    onChange={(e) => setStatusNotes(e.target.value)}
+                    rows={2}
+                    className={cn(inputCls, 'min-h-[72px] resize-y py-2.5')}
+                    placeholder="e.g. Recruiter asked for references"
+                  />
+                </label>
+                {statusError && (
+                  <p className="text-sm text-amber" role="alert">
+                    {statusError}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={statusBusy || newStatus === app.currentStatus}
+                  className={btnPrimary}
+                >
+                  {statusBusy ? 'Updating…' : 'Add to timeline'}
+                </button>
+              </form>
+            </section>
+          )}
+
+          {/* Details */}
+          <section
+            aria-label="Details"
+            className="rounded-[14px] border border-border bg-card px-5 py-[18px]"
+          >
+            <div className="mb-2.5 flex items-center justify-between gap-3">
+              <h2 className="font-space text-[15px] font-semibold text-text">Details</h2>
+              {!editing && (
+                <button type="button" onClick={() => setEditing(true)} className={btnSecondary}>
+                  Edit
+                </button>
+              )}
+            </div>
+            {editing ? (
+              <form onSubmit={handleEditSubmit} className="space-y-3">
+                <EditField label="Company" name="company" defaultValue={app.company} />
+                <EditField label="Role" name="role" defaultValue={app.role} />
+                <EditField
+                  label="Applied date"
+                  name="appliedDate"
+                  type="date"
+                  defaultValue={app.appliedDate}
+                />
+                <EditField label="Job URL" name="jobUrl" defaultValue={app.jobUrl ?? ''} />
+                <label className="block">
+                  <span className="mb-1.5 block text-[12.5px] font-semibold text-muted">
+                    Priority
+                  </span>
+                  <select name="priority" defaultValue={app.priority} className={inputCls}>
+                    {PRIORITY_OPTIONS.map((p) => (
+                      <option key={p} value={p}>
+                        {p.charAt(0).toUpperCase() + p.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-[12.5px] font-semibold text-muted">
+                    Notes
+                  </span>
+                  <textarea
+                    name="notes"
+                    defaultValue={app.notes ?? ''}
+                    rows={3}
+                    className={cn(inputCls, 'min-h-[88px] resize-y py-2.5')}
+                  />
+                </label>
+                {editError && (
+                  <p className="text-sm text-amber" role="alert">
+                    {editError}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-2.5">
+                  <button type="submit" disabled={editBusy} className={btnPrimary}>
+                    {editBusy ? 'Saving…' : 'Save changes'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditing(false)}
+                    className={btnSecondary}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="flex flex-col gap-2 text-[13.5px]">
+                <DetailRow label="Source" value={app.source.replace(/_/g, ' ')} />
+                {app.recruiterEmail && (
+                  <DetailRow label="Contact" value={app.recruiterEmail} />
+                )}
+                {app.jobUrl && (
+                  <DetailRow
+                    label="Job URL"
+                    value={
+                      <a
+                        href={app.jobUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-lt hover:underline"
+                      >
+                        {app.jobUrl}
+                      </a>
+                    }
+                  />
+                )}
+                {app.nextActionDue && (
+                  <DetailRow
+                    label="Next step"
+                    value={`${app.nextAction ?? 'Follow up'} · ${fmtDate(app.nextActionDue)}`}
+                  />
+                )}
+                {app.notes && <DetailRow label="Notes" value={app.notes} />}
+                {!app.jobUrl && !app.notes && !app.recruiterEmail && !app.nextActionDue && (
+                  <p className="text-dim">No extra details yet.</p>
+                )}
+              </div>
             )}
-            <div className="flex flex-wrap gap-2">
-              <button type="submit" disabled={editBusy} className={btnPrimary}>
-                {editBusy ? 'Saving…' : 'Save changes'}
-              </button>
+          </section>
+
+          {/* Outcome (terminal states) */}
+          {isTerminal && (
+            <section className="rounded-[14px] border border-border bg-card px-5 py-[18px]">
+              <h2 className="font-space text-[15px] font-semibold text-text">Log outcome</h2>
+              <p className="mt-1 text-[13px] text-muted">
+                Help us learn what worked — this feeds your career score over time.
+              </p>
+              {outcomeDone ? (
+                <p className="mt-3 text-sm text-success-lt">Outcome recorded. Thank you.</p>
+              ) : (
+                <form onSubmit={handleOutcome} className="mt-4 space-y-3">
+                  <select
+                    value={outcome}
+                    onChange={(e) =>
+                      setOutcome(e.target.value as OutcomeRequest['outcome'])
+                    }
+                    className={inputCls}
+                  >
+                    {OUTCOME_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="submit" disabled={outcomeBusy} className={btnPrimary}>
+                    {outcomeBusy ? 'Saving…' : 'Record outcome'}
+                  </button>
+                </form>
+              )}
+            </section>
+          )}
+
+          {/* Delete */}
+          <section className="border-t border-inner pt-4">
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleteBusy}
+              className={cn(
+                'h-10 rounded-[10px] px-4 text-[13.5px] font-semibold transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                confirmDelete
+                  ? 'bg-amber/10 text-amber hover:bg-amber/20'
+                  : 'border border-border text-muted hover:border-hover-border hover:text-text',
+              )}
+            >
+              {deleteBusy
+                ? 'Removing…'
+                : confirmDelete
+                  ? 'Confirm remove from tracker'
+                  : 'Remove from tracker'}
+            </button>
+            {confirmDelete && !deleteBusy && (
               <button
                 type="button"
-                onClick={() => setEditing(false)}
-                className={btnSecondary}
+                onClick={() => setConfirmDelete(false)}
+                className="ml-2 h-10 px-2 text-sm text-muted hover:text-text"
               >
                 Cancel
               </button>
-            </div>
-          </form>
-        ) : (
-          <div className="mt-3 text-sm text-muted space-y-1">
-            {app.jobUrl && (
-              <p>
-                Job:{' '}
-                <a
-                  href={app.jobUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary-lt hover:underline"
-                >
-                  {app.jobUrl}
-                </a>
-              </p>
             )}
-            {app.notes && <p>Notes: {app.notes}</p>}
-            {!app.jobUrl && !app.notes && <p>No extra details yet.</p>}
-          </div>
-        )}
-      </section>
-
-      {/* Outcome (terminal states) */}
-      {isTerminal && (
-        <section className="rounded-xl border border-border bg-surface p-4 sm:p-5">
-          <h2 className="font-medium text-text">Log outcome</h2>
-          <p className="text-sm text-muted mt-1">
-            Help us learn what worked — this feeds your career score over time.
-          </p>
-          {outcomeDone ? (
-            <p className="mt-3 text-sm text-emerald-400">Outcome recorded. Thank you.</p>
-          ) : (
-            <form onSubmit={handleOutcome} className="mt-4 space-y-3">
-              <select
-                value={outcome}
-                onChange={(e) =>
-                  setOutcome(e.target.value as OutcomeRequest['outcome'])
-                }
-                className={inputCls}
-              >
-                {OUTCOME_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-              <button type="submit" disabled={outcomeBusy} className={btnPrimary}>
-                {outcomeBusy ? 'Saving…' : 'Record outcome'}
-              </button>
-            </form>
-          )}
-        </section>
-      )}
-
-      {/* Delete */}
-      <section className="border-t border-border pt-6">
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={deleteBusy}
-          className={cn(
-            'min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-            confirmDelete
-              ? 'bg-orange-400/10 text-orange-400 hover:bg-orange-400/20'
-              : 'text-muted hover:text-text border border-border',
-          )}
-        >
-          {deleteBusy
-            ? 'Removing…'
-            : confirmDelete
-              ? 'Confirm remove from tracker'
-              : 'Remove from tracker'}
-        </button>
-        {confirmDelete && !deleteBusy && (
-          <button
-            type="button"
-            onClick={() => setConfirmDelete(false)}
-            className="ml-2 text-sm text-muted hover:text-text min-h-[44px] px-2"
-          >
-            Cancel
-          </button>
-        )}
-      </section>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }
 
-function Meta({ label, children }: { label: string; children: React.ReactNode }) {
+function DetailRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
   return (
-    <div>
-      <dt className="text-xs text-muted">{label}</dt>
-      <dd className="text-text capitalize">{children}</dd>
+    <div className="flex gap-2.5">
+      <span className="w-[110px] shrink-0 text-dim">{label}</span>
+      <span className="text-text capitalize">{value}</span>
     </div>
   );
 }
@@ -449,30 +586,45 @@ function EditField({
 }) {
   return (
     <label className="block">
-      <span className="text-xs text-muted">{label}</span>
-      <input
-        name={name}
-        type={type}
-        defaultValue={defaultValue}
-        className={inputCls}
-      />
+      <span className="mb-1.5 block text-[12.5px] font-semibold text-muted">{label}</span>
+      <input name={name} type={type} defaultValue={defaultValue} className={inputCls} />
     </label>
   );
 }
 
+function BackIcon() {
+  return (
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M15 5l-7 7 7 7" />
+    </svg>
+  );
+}
+
 const inputCls = cn(
-  'mt-1 w-full min-h-[44px] rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+  'w-full rounded-[10px] border border-border bg-bg px-3 text-sm text-text',
+  'h-11 focus-visible:outline-none focus-visible:border-primary',
 );
 
 const btnPrimary = cn(
-  'inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium',
-  'bg-primary text-white hover:bg-primary-lt disabled:opacity-50 transition-colors',
+  'inline-flex h-10 items-center justify-center rounded-[10px] px-4',
+  'text-[13.5px] font-semibold text-white bg-primary transition-colors',
+  'hover:bg-primary-hover disabled:opacity-50',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
 );
 
 const btnSecondary = cn(
-  'inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium',
-  'border border-border text-muted hover:text-text hover:bg-surface2 transition-colors',
+  'inline-flex h-10 items-center justify-center rounded-[10px] border border-border bg-bg px-4',
+  'text-[13.5px] font-semibold text-text transition-colors',
+  'hover:border-hover-border disabled:opacity-50',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
 );

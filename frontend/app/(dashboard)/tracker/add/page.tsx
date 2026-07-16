@@ -78,28 +78,33 @@ export default function AddApplicationPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto space-y-6">
+    <div className="mx-auto flex max-w-[520px] flex-col gap-4">
       <header>
         <Link
           href="/tracker"
-          className="text-sm text-muted hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+          className={cn(
+            'inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 -ml-2.5',
+            'text-[13.5px] font-medium text-muted transition-colors',
+            'hover:bg-card hover:text-text',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+          )}
         >
-          ← Back to tracker
+          <BackIcon />
+          All applications
         </Link>
-        <h1 className="mt-3 text-2xl font-bold font-space text-text">Add application</h1>
-        <p className="text-sm text-muted mt-1">
-          Record a new application — you can update the status as things progress.
-        </p>
+        <h1 className="mt-2 font-space text-[17px] font-semibold text-text">
+          Add application
+        </h1>
       </header>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <Field label="Company" required>
           <input
             required
             value={company}
             onChange={(e) => setCompany(e.target.value)}
             className={inputCls}
-            placeholder="e.g. Google"
+            placeholder="e.g. Razorpay"
           />
         </Field>
 
@@ -109,11 +114,11 @@ export default function AddApplicationPage() {
             value={role}
             onChange={(e) => setRole(e.target.value)}
             className={inputCls}
-            placeholder="e.g. Software Engineer"
+            placeholder="e.g. SDE Intern"
           />
         </Field>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Source">
             <select
               value={source}
@@ -128,7 +133,7 @@ export default function AddApplicationPage() {
             </select>
           </Field>
 
-          <Field label="Applied date" required>
+          <Field label="Applied on" required>
             <input
               type="date"
               required
@@ -168,20 +173,25 @@ export default function AddApplicationPage() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            className={cn(inputCls, 'resize-y min-h-[88px]')}
+            className={cn(inputCls, 'min-h-[88px] resize-y py-2.5')}
             placeholder="Optional context — referral, recruiter name, etc."
           />
         </Field>
 
         {error && (
-          <p className="text-sm text-orange-400" role="alert">
+          <p className="text-sm text-amber" role="alert">
             {error}
           </p>
         )}
 
-        <button type="submit" disabled={submitting} className={btnPrimary}>
-          {submitting ? 'Saving…' : 'Save application'}
-        </button>
+        <div className="mt-1 flex gap-2.5">
+          <button type="submit" disabled={submitting} className={cn(btnPrimary, 'flex-1 h-[46px]')}>
+            {submitting ? 'Saving…' : 'Add application'}
+          </button>
+          <Link href="/tracker" className={btnCancel}>
+            Cancel
+          </Link>
+        </div>
       </form>
 
       {duplicate && (
@@ -214,19 +224,19 @@ function DuplicatePrompt({
     <div
       role="dialog"
       aria-labelledby="dup-title"
-      className="rounded-xl border border-amber-400/40 bg-amber-400/5 p-5"
+      className="rounded-[14px] border border-amber/40 bg-amber/5 p-5"
     >
-      <h2 id="dup-title" className="font-medium text-amber-400">
+      <h2 id="dup-title" className="font-semibold text-amber">
         Looks like you already added this
       </h2>
-      <p className="text-sm text-muted mt-2">
+      <p className="mt-2 text-sm text-muted">
         We found a similar application:{' '}
         <strong className="text-text">
           {existing.company} · {existing.role}
         </strong>{' '}
         (applied {existing.appliedDate}).
       </p>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2.5">
         <button
           type="button"
           onClick={onForce}
@@ -235,13 +245,10 @@ function DuplicatePrompt({
         >
           Add anyway
         </button>
-        <Link
-          href={`/tracker/${existing.id}`}
-          className={btnSecondary}
-        >
+        <Link href={`/tracker/${existing.id}`} className={btnSecondary}>
           View existing
         </Link>
-        <button type="button" onClick={onCancel} className={btnSecondary}>
+        <button type="button" onClick={onCancel} className={btnCancel}>
           Cancel
         </button>
       </div>
@@ -260,28 +267,55 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-sm text-muted">
+      <span className="mb-1.5 block text-[12.5px] font-semibold text-muted">
         {label}
         {required && <span className="text-primary-lt"> *</span>}
       </span>
-      <div className="mt-1">{children}</div>
+      {children}
     </label>
   );
 }
 
+function BackIcon() {
+  return (
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M15 5l-7 7 7 7" />
+    </svg>
+  );
+}
+
 const inputCls = cn(
-  'w-full min-h-[44px] rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+  'h-11 w-full rounded-[10px] border border-border bg-card px-3 text-sm text-text',
+  'focus-visible:outline-none focus-visible:border-primary',
 );
 
 const btnPrimary = cn(
-  'inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium',
-  'bg-primary text-white hover:bg-primary-lt disabled:opacity-50 transition-colors',
+  'inline-flex items-center justify-center rounded-[10px] px-4',
+  'text-sm font-semibold text-white bg-primary transition-colors',
+  'hover:bg-primary-hover disabled:opacity-50',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
 );
 
 const btnSecondary = cn(
-  'inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium',
-  'border border-border text-muted hover:text-text hover:bg-surface2 transition-colors',
+  'inline-flex h-10 items-center justify-center rounded-[10px] border border-border bg-bg px-4',
+  'text-[13.5px] font-semibold text-text transition-colors',
+  'hover:border-hover-border',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+);
+
+const btnCancel = cn(
+  'inline-flex h-[46px] items-center justify-center rounded-[10px] border border-border px-[18px]',
+  'text-sm font-semibold text-muted transition-colors',
+  'hover:border-hover-border hover:text-text',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
 );

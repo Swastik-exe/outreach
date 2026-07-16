@@ -52,35 +52,46 @@ export function DraftCard({ draft, onResolved }: DraftCardProps) {
 
   const confidencePct =
     draft.confidence != null ? Math.round(Number(draft.confidence) * 100) : null;
+  const confColor =
+    confidencePct != null && confidencePct >= 80
+      ? { text: '#34D399', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.3)' }
+      : { text: '#F59E0B', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)' };
 
   return (
-    <article
-      className={cn(
-        'rounded-xl border bg-surface p-4 sm:p-5',
-        draft.needsReview ? 'border-amber-400/40' : 'border-border',
-      )}
+    <section
+      aria-label="Imported draft"
+      className="flex flex-col gap-3 rounded-[14px] border border-border bg-card px-5 py-[18px]"
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h3 className="font-medium text-text">
+      <div className="flex flex-wrap items-start gap-3">
+        <span className="min-w-[200px] flex-1">
+          <span className="block text-[15px] font-semibold text-text">
             {draft.parsedCompany ?? 'Unknown company'}
-            {draft.parsedRole ? ` · ${draft.parsedRole}` : ''}
-          </h3>
-          <p className="text-sm text-muted mt-1">
+            {draft.parsedRole && (
+              <span className="font-normal text-dim"> · {draft.parsedRole}</span>
+            )}
+          </span>
+          <span className="mt-0.5 block text-[12.5px] text-dim">
             Parsed date: {fmtDate(draft.parsedDate)}
-            {confidencePct != null && ` · ${confidencePct}% confidence`}
-          </p>
-        </div>
-        {draft.needsReview && (
-          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-400/10 text-amber-400 ring-1 ring-inset ring-amber-400/30">
-            Review suggested
+            {confidencePct != null && ` · ${confidencePct}% match`}
+          </span>
+        </span>
+        {confidencePct != null && (
+          <span
+            className="inline-flex items-center rounded-full px-[11px] py-1 text-xs font-semibold whitespace-nowrap"
+            style={{
+              color: confColor.text,
+              backgroundColor: confColor.bg,
+              border: `1px solid ${confColor.border}`,
+            }}
+          >
+            {confidencePct}% match
           </span>
         )}
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-3">
         <label className="block">
-          <span className="text-xs text-muted">Company</span>
+          <span className="mb-1.5 block text-[12.5px] font-semibold text-muted">Company</span>
           <input
             value={company}
             onChange={(e) => setCompany(e.target.value)}
@@ -89,7 +100,7 @@ export function DraftCard({ draft, onResolved }: DraftCardProps) {
           />
         </label>
         <label className="block">
-          <span className="text-xs text-muted">Role</span>
+          <span className="mb-1.5 block text-[12.5px] font-semibold text-muted">Role</span>
           <input
             value={role}
             onChange={(e) => setRole(e.target.value)}
@@ -98,7 +109,7 @@ export function DraftCard({ draft, onResolved }: DraftCardProps) {
           />
         </label>
         <label className="block">
-          <span className="text-xs text-muted">Applied date</span>
+          <span className="mb-1.5 block text-[12.5px] font-semibold text-muted">Applied date</span>
           <input
             type="date"
             value={appliedDate}
@@ -109,47 +120,55 @@ export function DraftCard({ draft, onResolved }: DraftCardProps) {
         </label>
       </div>
 
+      {draft.needsReview && (
+        <div className="rounded-[10px] border border-inner bg-bg px-[13px] py-2.5 text-[13px] italic text-muted">
+          Review suggested — please verify company and role before approving.
+        </div>
+      )}
+
       {error && (
-        <p className="mt-3 text-sm text-orange-400" role="alert">
+        <p className="text-sm text-amber" role="alert">
           {error}
         </p>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2.5">
         <button
           type="button"
           onClick={handleConfirm}
           disabled={busy != null}
           className={btnPrimary}
         >
-          {busy === 'confirm' ? 'Adding…' : 'Confirm & add'}
+          {busy === 'confirm' ? 'Adding…' : 'Approve — add to tracker'}
         </button>
         <button
           type="button"
           onClick={handleDiscard}
           disabled={busy != null}
-          className={btnSecondary}
+          className={btnGhost}
         >
-          {busy === 'discard' ? 'Discarding…' : 'Discard'}
+          {busy === 'discard' ? 'Discarding…' : 'Dismiss'}
         </button>
       </div>
-    </article>
+    </section>
   );
 }
 
 const inputCls = cn(
-  'mt-1 w-full min-h-[44px] rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+  'h-11 w-full rounded-[10px] border border-border bg-card px-3 text-sm text-text',
+  'focus-visible:outline-none focus-visible:border-primary',
 );
 
 const btnPrimary = cn(
-  'inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium',
-  'bg-primary text-white hover:bg-primary-lt disabled:opacity-50 transition-colors',
+  'inline-flex h-10 items-center justify-center rounded-[10px] px-4',
+  'text-[13.5px] font-semibold text-white bg-primary transition-colors',
+  'hover:bg-primary-hover disabled:opacity-50',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
 );
 
-const btnSecondary = cn(
-  'inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium',
-  'border border-border text-muted hover:text-text hover:bg-surface2 disabled:opacity-50 transition-colors',
+const btnGhost = cn(
+  'inline-flex h-10 items-center justify-center rounded-[10px] px-3.5',
+  'text-[13.5px] font-medium text-muted transition-colors',
+  'hover:bg-card hover:text-text disabled:opacity-50',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
 );

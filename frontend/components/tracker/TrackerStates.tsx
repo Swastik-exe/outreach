@@ -13,43 +13,103 @@ export function ErrorState({
   onRetry,
 }: ErrorStateProps) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-6 text-center">
-      <p className="text-muted text-sm">{message}</p>
+    <section
+      aria-label="Sync problem"
+      className="flex flex-wrap items-start gap-3.5 rounded-[14px] border border-border bg-card px-[18px] py-4"
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-error/15">
+        <svg
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#FB7185"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 8v5 M12 16.5v.01 M12 2.8 22 20H2Z" />
+        </svg>
+      </span>
+      <div className="min-w-[220px] flex-1">
+        <div className="text-[14.5px] font-semibold text-text">
+          Your list didn&apos;t sync
+        </div>
+        <div className="mt-0.5 text-[13.5px] text-muted">
+          {message}. Changes you make now are stored and will sync when we reconnect.
+        </div>
+      </div>
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
           className={cn(
-            'mt-4 inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-lg',
-            'text-sm font-medium bg-primary/10 text-primary-lt hover:bg-primary/20',
+            'h-10 shrink-0 rounded-[10px] border border-border bg-bg px-4',
+            'text-[13.5px] font-semibold text-text transition-colors',
+            'hover:border-hover-border hover:bg-card',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
           )}
         >
-          Try again
+          Retry now
         </button>
       )}
-    </div>
+    </section>
   );
 }
 
 export function EmptyApplications() {
   return (
-    <div className="rounded-xl border border-dashed border-border bg-surface/50 p-8 sm:p-12 text-center">
-      <p className="text-lg font-medium text-text font-space">Your tracker is ready</p>
-      <p className="mt-2 text-sm text-muted max-w-md mx-auto">
-        Add your first application to start building a calm picture of your job search —
-        every step counts, even the early ones.
+    <section
+      aria-label="No applications"
+      className="flex flex-col items-center rounded-2xl border border-border bg-card px-6 py-12 text-center"
+    >
+      <span className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-primary/15">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#A78BFA"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3.5 5.5l1.5 1.5 2.5-2.5 M3.5 11.5l1.5 1.5 2.5-2.5 M3.5 17.5l1.5 1.5 2.5-2.5 M11.5 6H21 M11.5 12H21 M11.5 18H21" />
+        </svg>
+      </span>
+      <h2 className="mt-4 font-space text-[17px] font-semibold text-text">
+        Track your first application
+      </h2>
+      <p className="mt-1 mb-[18px] max-w-[44ch] text-sm text-muted text-pretty">
+        Every application you track — and follow up on time — feeds your momentum subscore.
+        It takes 20 seconds.
       </p>
-      <Link
-        href="/tracker/add"
-        className={cn(
-          'mt-6 inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 rounded-lg',
-          'text-sm font-medium bg-primary text-white hover:bg-primary-lt transition-colors',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-        )}
-      >
-        Add your first application
-      </Link>
-    </div>
+      <div className="flex flex-wrap justify-center gap-2.5">
+        <Link
+          href="/tracker/add"
+          className={cn(
+            'inline-flex h-11 items-center justify-center rounded-[10px] px-[18px]',
+            'text-sm font-semibold text-white bg-primary transition-colors',
+            'hover:bg-primary-hover',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+          )}
+        >
+          Add manually
+        </Link>
+        <Link
+          href="/settings"
+          className={cn(
+            'inline-flex h-11 items-center justify-center rounded-[10px] border border-border bg-bg px-4',
+            'text-[13.5px] font-semibold text-text transition-colors',
+            'hover:border-hover-border',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+          )}
+        >
+          Set up email forwarding
+        </Link>
+      </div>
+    </section>
   );
 }

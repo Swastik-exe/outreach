@@ -2,17 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Design tokens ─────────────────────────────────────────────────────────── */
+/* ── Design tokens (match design-reference) ───────────────────────────────── */
 :root {
-  --bg:         #0A0B0E;
-  --surface:    #111318;
-  --surface-2:  #1A1D24;
-  --border:     #2A2D36;
-  --primary:    #6366F1;
-  --primary-lt: #818CF8;
-  --text:       #F4F5F7;
-  --text-muted: #8B8FA8;
-  --text-dim:   #4B4F63;
+  --bg:           #050816;
+  --surface:      #0B1220;
+  --card:         #111827;
+  --border:       #22304A;
+  --inner:        #1B2740;
+  --hover-border: #33456B;
+  --row-hover:    #151E31;
+  --text:         #F8FAFC;
+  --text-muted:   #A5B4C3;
+  --text-dim:     #64748B;
+  --brand:        #7C3AED;
+  --brand-hover:  #8B5CF6;
+  --brand-active: #6D28D9;
+  --brand-light:  #A78BFA;
+  --brand-lighter:#C4B5FD;
+  --teal:         #2DD4BF;
+  --amber:        #F59E0B;
+  --success:      #10B981;
+  --success-lt:   #34D399;
+  --error:        #FB7185;
 }
 
 /* ── Base ──────────────────────────────────────────────────────────────────── */
@@ -21,8 +32,10 @@ body {
   color: var(--text);
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   min-height: 100dvh;
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
+}
+
+::selection {
+  background: rgba(124, 58, 237, 0.45);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -44,8 +57,49 @@ body {
 
 /* ── Focus ring — keyboard navigation ─────────────────────────────────────── */
 *:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid #8B5CF6;
   outline-offset: 2px;
+}
+
+/* ── Skeleton shimmer (lists / loading cards) ──────────────────────────────── */
+@keyframes shimmer {
+  0% { background-position: 190% 0; }
+  100% { background-position: -190% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(100deg, #1B2740 40%, #28395A 50%, #1B2740 60%);
+  background-size: 250% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none !important;
+    background: #1B2740;
+  }
+}
+
+/* ── Vortex loader arcs ────────────────────────────────────────────────────── */
+@keyframes vortex-cw {
+  to { transform: rotate(360deg); }
+}
+@keyframes vortex-ccw {
+  to { transform: rotate(-360deg); }
+}
+
+.vortex-spin-cw {
+  animation: vortex-cw 0.9s linear infinite;
+}
+.vortex-spin-ccw {
+  animation: vortex-ccw 1.5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vortex-spin-cw,
+  .vortex-spin-ccw {
+    animation: none !important;
+  }
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */

@@ -93,6 +93,15 @@ export interface HistoryEntry {
   band: string;
 }
 
+export interface CohortInsightResponse {
+  available: boolean;
+  band: string | null;
+  cohortSize: number | null;
+  /** Percentile rank 0–100 (higher = better vs cohort). */
+  percentile: number | null;
+  cohortKey: string | null;
+}
+
 // ── Resume ────────────────────────────────────────────────────────────────────
 // Jackson: Java record boolean isActive → JSON key "active"
 export interface ResumeResponse {
@@ -142,32 +151,60 @@ export function parseFixes(raw: string | null): string[] {
   }
 }
 
-// ── Score band colours ────────────────────────────────────────────────────────
-export const BAND_META: Record<string, { color: string; accent: string; bg: string }> = {
+// ── Score band colours (match design-reference Dashboard.dc.html) ─────────────
+export const BAND_META: Record<
+  string,
+  { color: string; accent: string; text: string; bg: string; chipBg: string; chipBd: string }
+> = {
   'Getting Started': {
-    color: 'text-amber-400',
+    color: 'text-[#F59E0B]',
     accent: '#F59E0B',
-    bg: 'bg-amber-400/10',
+    text: '#F59E0B',
+    bg: 'bg-[rgba(245,158,11,0.12)]',
+    chipBg: 'rgba(245,158,11,0.12)',
+    chipBd: 'rgba(245,158,11,0.32)',
   },
   Building: {
-    color: 'text-orange-400',
-    accent: '#FB923C',
-    bg: 'bg-orange-400/10',
+    color: 'text-[#34D399]',
+    accent: '#10B981',
+    text: '#34D399',
+    bg: 'bg-[rgba(16,185,129,0.12)]',
+    chipBg: 'rgba(16,185,129,0.12)',
+    chipBd: 'rgba(16,185,129,0.32)',
   },
   Strong: {
-    color: 'text-indigo-400',
-    accent: '#818CF8',
-    bg: 'bg-indigo-400/10',
+    color: 'text-[#A78BFA]',
+    accent: '#7C3AED',
+    text: '#A78BFA',
+    bg: 'bg-[rgba(124,58,237,0.12)]',
+    chipBg: 'rgba(124,58,237,0.12)',
+    chipBd: 'rgba(124,58,237,0.32)',
+  },
+  Ready: {
+    color: 'text-[#2DD4BF]',
+    accent: '#2DD4BF',
+    text: '#2DD4BF',
+    bg: 'bg-[rgba(45,212,191,0.12)]',
+    chipBg: 'rgba(45,212,191,0.12)',
+    chipBd: 'rgba(45,212,191,0.32)',
   },
   'Placement Ready': {
-    color: 'text-emerald-400',
-    accent: '#34D399',
-    bg: 'bg-emerald-400/10',
+    color: 'text-[#2DD4BF]',
+    accent: '#2DD4BF',
+    text: '#2DD4BF',
+    bg: 'bg-[rgba(45,212,191,0.12)]',
+    chipBg: 'rgba(45,212,191,0.12)',
+    chipBd: 'rgba(45,212,191,0.32)',
   },
 };
 
 export function getBandMeta(band: string) {
   return BAND_META[band] ?? BAND_META['Getting Started'];
+}
+
+/** Display label for top band — design uses "Ready"; API may still say "Placement Ready". */
+export function bandDisplayName(band: string): string {
+  return band === 'Placement Ready' ? 'Ready' : band;
 }
 
 // ── Application tracker ───────────────────────────────────────────────────────

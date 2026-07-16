@@ -9,78 +9,63 @@ interface ScoreRingProps {
   size?: number;
 }
 
-const RADIUS = 110;
-const STROKE_WIDTH = 10;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-const SVG_SIZE = (RADIUS + STROKE_WIDTH + 4) * 2;
+/** Design ring: r=89, stroke=11, viewBox 204 — circumference ≈ 559.2 */
+const R = 89;
+const STROKE = 11;
+const VIEW = 204;
+const CIRC = 2 * Math.PI * R; // ≈ 559.2
 
-export function ScoreRing({ score, band, size = SVG_SIZE }: ScoreRingProps) {
-  const displayed = useCountUp(score, 1200);
+/**
+ * Dashboard/onboarding ring — JS count-up drives both number and stroke-dasharray.
+ * Do NOT add a competing CSS ring-draw animation here.
+ */
+export function ScoreRing({ score, band, size = VIEW }: ScoreRingProps) {
+  const displayed = useCountUp(score, 220);
   const meta = getBandMeta(band);
-
-  const progress = Math.min(score / 1000, 1);
-  const strokeDashoffset = CIRCUMFERENCE * (1 - progress);
-
-  const gradId = `score-grad-${band.replace(/\s/g, '-')}`;
+  const dash = Math.max(0, (displayed / 1000) * CIRC);
 
   return (
     <div
-      className="relative flex items-center justify-center"
+      className="relative shrink-0"
       style={{ width: size, height: size }}
       role="img"
-      aria-label={`Career readiness score: ${score} out of 1000. Band: ${band}`}
+      aria-label={`Career health score ${score} of 1000. Band: ${band}`}
     >
-      <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
-        fill="none"
-        aria-hidden="true"
-        style={{ transform: 'rotate(-90deg)' }}
-      >
-        <defs>
-          <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor={meta.accent} stopOpacity="0.6" />
-            <stop offset="100%" stopColor={meta.accent} />
-          </linearGradient>
-        </defs>
-
-        {/* Track */}
+      <svg width={size} height={size} viewBox={`0 0 ${VIEW} ${VIEW}`} aria-hidden="true">
         <circle
-          cx={SVG_SIZE / 2}
-          cy={SVG_SIZE / 2}
-          r={RADIUS}
-          stroke="#1A1D24"
-          strokeWidth={STROKE_WIDTH}
+          cx={VIEW / 2}
+          cy={VIEW / 2}
+          r={R}
           fill="none"
+          stroke="#22304A"
+          strokeWidth={STROKE}
+          opacity={0.55}
         />
-
-        {/* Progress arc */}
         <circle
-          cx={SVG_SIZE / 2}
-          cy={SVG_SIZE / 2}
-          r={RADIUS}
-          stroke={`url(#${gradId})`}
-          strokeWidth={STROKE_WIDTH}
-          strokeLinecap="round"
-          strokeDasharray={CIRCUMFERENCE}
-          strokeDashoffset={strokeDashoffset}
+          cx={VIEW / 2}
+          cy={VIEW / 2}
+          r={R}
           fill="none"
-          style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1)' }}
+          stroke={meta.accent}
+          strokeWidth={STROKE}
+          strokeLinecap="round"
+          strokeDasharray={`${dash.toFixed(1)} ${CIRC.toFixed(1)}`}
+          transform={`rotate(-90 ${VIEW / 2} ${VIEW / 2})`}
         />
       </svg>
-
-      {/* Center content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span
-          className="font-mono text-5xl font-bold tabular-nums leading-none"
-          style={{ color: meta.accent }}
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-px">
+        <div
+          className="font-mono font-bold tabular-nums leading-none"
+          style={{ fontSize: 52, color: meta.text }}
         >
           {displayed}
-        </span>
-        <span className="text-sm text-[#8B8FA8] mt-1 font-medium tracking-widest uppercase">
-          / 1000
-        </span>
+        </div>
+        <div
+          className="font-mono text-dim tabular-nums"
+          style={{ fontSize: 12.5, marginTop: 6 }}
+        >
+          of 1000
+        </div>
       </div>
     </div>
   );
