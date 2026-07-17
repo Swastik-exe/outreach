@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -220,6 +221,23 @@ public class AuthService {
                         s.setIsActive(false);
                         sessionRepository.save(s);
                     });
+        }
+        clearRefreshCookie(response);
+    }
+
+    // ── DELETE ACCOUNT ────────────────────────────────────────────────────────
+
+    /**
+     * Permanently deletes the caller's account. All owned rows (sessions, resumes,
+     * applications, scores, subscriptions, …) are removed by {@code ON DELETE CASCADE};
+     * audit-only rows (device_registry, user_events, ai_interactions) survive with a
+     * null user via {@code ON DELETE SET NULL}. The refresh cookie is cleared so the
+     * browser session ends immediately.
+     */
+    public void deleteAccount(UUID userId, HttpServletResponse response) {
+        if (userRepository.existsById(userId)) {
+            userRepository.deleteById(userId);
+            log.info("Account permanently deleted for user {}", userId);
         }
         clearRefreshCookie(response);
     }

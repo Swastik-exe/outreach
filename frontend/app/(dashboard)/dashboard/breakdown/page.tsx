@@ -94,7 +94,7 @@ export default function BreakdownPage() {
             Where your {data.overallScore} comes from
           </h1>
           <div className="text-[13px] text-dim mt-0.5">
-            Five subscores, recomputed nightly (~02:00 IST) · every change explained in{' '}
+            Five subscores, recomputed nightly · every change explained in{' '}
             <Link
               href="/dashboard/history"
               className="text-primary-lt no-underline hover:text-[#C4B5FD]"

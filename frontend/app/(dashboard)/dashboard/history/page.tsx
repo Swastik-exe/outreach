@@ -206,7 +206,7 @@ export default function HistoryPage() {
           </p>
           <p className="text-text font-medium">No history yet</p>
           <p className="text-muted text-sm mt-1">
-            The nightly job (02:00 IST) snapshots your score daily. Check back tomorrow for your
+            The nightly job snapshots your score daily. Check back tomorrow for your
             first data point.
           </p>
         </div>

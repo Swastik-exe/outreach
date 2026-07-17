@@ -52,10 +52,10 @@ function formatUpdated(iso: string | null): string {
   const d = new Date(iso);
   const diffMs = Date.now() - d.getTime();
   const hours = Math.floor(diffMs / 3_600_000);
-  if (hours < 1) return 'Updated just now · Recalculates nightly (~02:00 IST)';
-  if (hours < 24) return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago · Recalculates nightly (~02:00 IST)`;
+  if (hours < 1) return 'Updated just now · Recalculates nightly';
+  if (hours < 24) return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago · Recalculates nightly`;
   const days = Math.floor(hours / 24);
-  return `Updated ${days} day${days === 1 ? '' : 's'} ago · Recalculates nightly (~02:00 IST)`;
+  return `Updated ${days} day${days === 1 ? '' : 's'} ago · Recalculates nightly`;
 }
 
 export default function DashboardPage() {
@@ -225,7 +225,7 @@ export default function DashboardPage() {
     : score.readinessNote;
 
   const heroMicro = score.stale
-    ? 'Score may be outdated · Recalculates nightly (~02:00 IST)'
+    ? 'Score may be outdated · Recalculates nightly'
     : formatUpdated(score.lastComputedAt);
 
   const nextTitle = isNew

@@ -21,6 +21,8 @@ export default function BillingSettingsPage() {
   const [info, setInfo] = useState<SubscriptionInfoResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -33,6 +35,23 @@ export default function BillingSettingsPage() {
     }
     setInfo(res.data);
     setLoading(false);
+  }, []);
+
+  const cancelSubscription = useCallback(async () => {
+    const ok = window.confirm(
+      'Cancel your subscription? You keep full access until the end of the period you already paid for — no further charges after that.',
+    );
+    if (!ok) return;
+    setCancelling(true);
+    setNotice(null);
+    const res = await api.post<SubscriptionInfoResponse>('/subscription/cancel');
+    setCancelling(false);
+    if (!res.success || !res.data) {
+      setNotice(res.error ?? 'Could not cancel right now. Please try again.');
+      return;
+    }
+    setInfo(res.data);
+    setNotice('Subscription cancelled. You keep access until your paid period ends.');
   }, []);
 
   useEffect(() => {
@@ -76,6 +95,15 @@ export default function BillingSettingsPage() {
         <p className="text-[13px] text-dim mt-0.5">{subline}</p>
       </header>
 
+      {notice && (
+        <div
+          role="status"
+          className="rounded-xl border border-border bg-surface px-4 py-3 text-[13px] text-muted"
+        >
+          {notice}
+        </div>
+      )}
+
       {/* Current plan */}
       <section
         aria-label="Current plan"
@@ -115,14 +143,14 @@ export default function BillingSettingsPage() {
           >
             Change plan
           </Link>
-          {(info.planTier === 'free' || info.expired) ? null : (
+          {(info.planTier === 'free' || info.expired || info.seasonPass || info.status !== 'active') ? null : (
             <button
               type="button"
-              disabled
-              title="Self-serve cancel is not available yet"
-              className="h-[42px] px-3.5 rounded-[10px] border-none bg-transparent text-dim text-[13.5px] font-medium cursor-not-allowed opacity-70"
+              onClick={cancelSubscription}
+              disabled={cancelling}
+              className="h-[42px] px-3.5 rounded-[10px] border border-border bg-surface text-muted text-[13.5px] font-medium hover:border-hover-border hover:text-text transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              Cancel (coming soon)
+              {cancelling ? 'Cancelling…' : 'Cancel plan'}
             </button>
           )}
         </div>

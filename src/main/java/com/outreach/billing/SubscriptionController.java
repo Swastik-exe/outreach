@@ -36,6 +36,12 @@ public class SubscriptionController {
                 subscriptionService.getSubscriptionInfo(CurrentUser.getUserId())));
     }
 
+    @PostMapping("/cancel")
+    public ResponseEntity<ApiResponse<SubscriptionInfoResponse>> cancel() {
+        return ResponseEntity.ok(ApiResponse.ok(
+                subscriptionService.cancel(CurrentUser.getUserId())));
+    }
+
     @GetMapping("/usage")
     public ResponseEntity<ApiResponse<UsageResponse>> usage() {
         return ResponseEntity.ok(ApiResponse.ok(

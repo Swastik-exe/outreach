@@ -108,6 +108,47 @@ public class SubscriptionService {
         }
     }
 
+    // ── Cancel ────────────────────────────────────────────────────────────────
+
+    /**
+     * User-initiated cancellation. Stops future Razorpay charges immediately but
+     * leaves the current paid period intact — access lapses at {@code periodEnd}
+     * via {@link #applyLazyExpiry}. Season Pass is a one-time purchase and cannot
+     * be cancelled.
+     */
+    @Transactional
+    public SubscriptionInfoResponse cancel(UUID userId) {
+        Subscription sub = subRepo.findByUserId(userId)
+                .orElseThrow(() -> new BadRequestException("No subscription to cancel."));
+
+        if (sub.getStatus() != SubStatus.active) {
+            throw new BadRequestException("No active subscription to cancel.");
+        }
+        if (Boolean.TRUE.equals(sub.getIsSeasonPass())) {
+            throw new BadRequestException(
+                    "The Season Pass is a one-time purchase and doesn't renew — there's nothing to cancel.");
+        }
+
+        if (sub.getRazorpaySubscriptionId() != null) {
+            try {
+                razorpayClient.cancelSubscription(sub.getRazorpaySubscriptionId());
+            } catch (Exception e) {
+                log.error("Razorpay cancel failed for subscription {}: {}",
+                        sub.getRazorpaySubscriptionId(), e.getMessage());
+                throw new BadRequestException(
+                        "Could not cancel with the payment provider. Please try again in a moment.");
+            }
+        }
+
+        sub.setStatus(SubStatus.cancelled);
+        sub.setUpdatedAt(OffsetDateTime.now());
+        subRepo.save(sub);
+        log.info("User {} cancelled subscription {} — access until {}",
+                userId, sub.getRazorpaySubscriptionId(), sub.getPeriodEnd());
+
+        return getSubscriptionInfo(userId);
+    }
+
     // ── Read ──────────────────────────────────────────────────────────────────
 
     @Transactional
@@ -248,7 +289,9 @@ public class SubscriptionService {
     @Transactional
     public void applyLazyExpiry(UUID userId) {
         subRepo.findByUserId(userId).ifPresent(sub -> {
-            if (sub.getStatus() == SubStatus.active && isExpired(sub)) {
+            boolean stillEntitled = sub.getStatus() == SubStatus.active
+                    || sub.getStatus() == SubStatus.cancelled;
+            if (stillEntitled && isExpired(sub)) {
                 sub.setStatus(SubStatus.expired);
                 sub.setUpdatedAt(OffsetDateTime.now());
                 subRepo.save(sub);

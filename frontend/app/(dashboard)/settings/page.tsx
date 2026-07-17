@@ -1,18 +1,23 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/context/auth';
 import type { ForwardingAddressResponse } from '@/lib/types';
 import { ApplicationSkeleton } from '@/components/tracker/ApplicationSkeleton';
 import { ErrorState } from '@/components/tracker/TrackerStates';
 import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
+  const router = useRouter();
+  const { logout } = useAuth();
   const [address, setAddress] = useState<ForwardingAddressResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState('');
   const [toastTone, setToastTone] = useState<'ok' | 'info'>('ok');
 
@@ -52,6 +57,30 @@ export default function SettingsPage() {
       setCopied(false);
       setToast('');
     }, 2200);
+  }
+
+  async function deleteAccount() {
+    const typed = window.prompt(
+      'This permanently deletes your account and all your data — resumes, applications, scores, and subscription. This cannot be undone.\n\nType DELETE to confirm.',
+    );
+    if (typed == null) return;
+    if (typed.trim().toUpperCase() !== 'DELETE') {
+      setToastTone('info');
+      setToast('Deletion cancelled — you must type DELETE to confirm.');
+      setTimeout(() => setToast(''), 2600);
+      return;
+    }
+    setDeleting(true);
+    const res = await api.del('/account');
+    if (!res.success) {
+      setDeleting(false);
+      setToastTone('info');
+      setToast(res.error ?? 'Could not delete your account. Please try again.');
+      setTimeout(() => setToast(''), 2800);
+      return;
+    }
+    await logout();
+    router.replace('/?deleted=1');
   }
 
   return (
@@ -144,17 +173,16 @@ export default function SettingsPage() {
           <span className="flex-1 min-w-[240px]">
             <span className="block text-sm font-semibold text-error">Delete account</span>
             <span className="block text-[12.5px] text-dim text-pretty">
-              Self-serve deletion isn&apos;t live yet — email support when you need it
+              Permanently removes your account and all data. This can&apos;t be undone.
             </span>
           </span>
           <button
             type="button"
-            disabled
-            title="Coming soon"
-            aria-disabled="true"
-            className="shrink-0 min-h-11 px-3.5 rounded-[9px] border border-error/25 bg-transparent text-error/60 text-[13px] font-semibold cursor-not-allowed"
+            onClick={deleteAccount}
+            disabled={deleting}
+            className="shrink-0 min-h-11 px-3.5 rounded-[9px] border border-error/40 bg-transparent text-error text-[13px] font-semibold hover:bg-error/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error"
           >
-            Coming soon
+            {deleting ? 'Deleting…' : 'Delete account'}
           </button>
         </div>
       </section>

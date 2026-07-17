@@ -68,6 +68,18 @@ public class RazorpayClient {
         return resp.path("id").asText();
     }
 
+    /** Cancels a recurring subscription immediately (no further charges). */
+    public void cancelSubscription(String subscriptionId) throws Exception {
+        if (config.isSandbox()) {
+            log.info("SANDBOX: mock cancel Razorpay subscription {}", subscriptionId);
+            return;
+        }
+        if (subscriptionId == null || subscriptionId.isBlank()) {
+            throw new IllegalStateException("Missing Razorpay subscription id to cancel.");
+        }
+        post("/subscriptions/" + subscriptionId + "/cancel", "{\"cancel_at_cycle_end\":0}");
+    }
+
     private JsonNode post(String path, String jsonBody) throws Exception {
         String auth = Base64.getEncoder().encodeToString(
                 (config.getKeyId() + ":" + config.getKeySecret()).getBytes(StandardCharsets.UTF_8));
