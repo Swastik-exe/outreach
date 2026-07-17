@@ -14,14 +14,14 @@
     "lucide-react": "^1.21.0",
     "next": "^15.5.20",
     "react": "^18",
-    "react-dom": "^18",
+    "react-dom": "^19",
     "recharts": "^3.9.0",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react-dom": "^19",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.5.20",
     "playwright": "^1.61.1",
