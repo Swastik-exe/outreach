@@ -6,6 +6,9 @@ const BASE_URL =
   (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) ||
   'http://localhost:8080/api/v1';
 
+/** Bound hung requests (Render cold starts can take 10–30s). */
+const REQUEST_TIMEOUT_MS = 45_000;
+
 // ── In-memory token store ─────────────────────────────────────────────────────
 // Never written to localStorage or cookies — lives only in JS heap.
 let _accessToken: string | null = null;
@@ -62,14 +65,22 @@ async function apiFetch<T>(
   }
 
   let res: Response;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
     res = await fetch(`${BASE_URL}${path}`, {
       ...fetchOptions,
+      signal: controller.signal,
       credentials: 'include',
       headers,
     });
-  } catch {
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      return { success: false, error: 'Request timed out. Please try again.' };
+    }
     return { success: false, error: 'Network error, please try again.' };
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   if (res.status === 401 && !_isRetry && !path.startsWith('/auth/')) {
@@ -101,15 +112,23 @@ export async function apiUpload<T>(
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   let res: Response;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
     res = await fetch(`${BASE_URL}${path}`, {
       method: 'POST',
       headers,
       body: formData,
+      signal: controller.signal,
       credentials: 'include',
     });
-  } catch {
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      return { success: false, error: 'Request timed out. Please try again.' };
+    }
     return { success: false, error: 'Network error, please try again.' };
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   if (res.status === 401 && !retried) {

@@ -12,6 +12,10 @@ concurrency:
   group: deploy-frontend
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   deploy:
     if: >
@@ -21,18 +25,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          # Deep enough to cover multi-commit pushes; tip-only diffs silently skip deploys.
+          fetch-depth: 100
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Detect frontend-relevant changes
         id: filter
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "should_deploy=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           SHA="${{ github.event.workflow_run.head_sha }}"
-          CHANGED=$(git diff --name-only "${SHA}^" "${SHA}" || true)
+          # Diff against the previous successful CI tip on main, not just SHA^1.
+          # A multi-commit push only runs CI for the tip; tip-only diffs miss earlier commits.
+          PREV=$(gh run list --workflow CI --branch main --status success --limit 10 \
+            --json headSha --jq "[.[] | select(.headSha != \"$SHA\")][0].headSha // empty" || true)
+          if [ -n "$PREV" ] && git cat-file -e "${PREV}^{commit}" 2>/dev/null; then
+            CHANGED=$(git diff --name-only "$PREV" "$SHA" || true)
+            echo "Comparing $PREV..$SHA"
+          else
+            CHANGED=$(git log --name-only --pretty=format: -n 30 "$SHA" | sed '/^$/d' | sort -u || true)
+            echo "Previous CI tip unavailable — using last 30 commits as a safe fallback."
+          fi
           echo "Changed files:"
           echo "$CHANGED"
           if echo "$CHANGED" | grep -qE '^(frontend/|\.github/workflows/deploy-frontend\.yml)'; then

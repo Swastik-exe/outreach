@@ -32,7 +32,9 @@ public class AiInteractionLogger {
      * Kept as a constant map; replace with DB lookup once billing goes live.
      */
     private static final Map<String, double[]> PRICING = Map.of(
+            // Keep the retired model key so historical rows still cost correctly.
             "gemini-1.5-flash",     new double[]{0.000075, 0.000300},
+            "gemini-2.5-flash",     new double[]{0.000075, 0.000300},
             "llama-3.1-8b-instant", new double[]{0.000050, 0.000080},
             "rule_engine_v1",       new double[]{0.0, 0.0}
     );
