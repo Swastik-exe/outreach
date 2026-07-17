@@ -19,11 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AccountController {
 
+    private final AccountService accountService;
     private final AuthService authService;
 
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> deleteAccount(HttpServletResponse response) {
-        authService.deleteAccount(CurrentUser.getUserId(), response);
+        accountService.deleteAccount(CurrentUser.getUserId());
+        authService.logout(null, response);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 }

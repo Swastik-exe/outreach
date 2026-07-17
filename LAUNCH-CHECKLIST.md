@@ -68,11 +68,14 @@ You don't need an admin panel to "add" users — anyone can self-register. To ru
 
 **Everything auto-deploys on push to `main`:**
 
-- **Backend:** push touching `src/`, `pom.xml`, `mvnw`, or `Dockerfile` → GitHub Action (`deploy-backend.yml`) fires the Render deploy hook → Render rebuilds the Docker image and redeploys. Takes ~5-10 min.
-- **Frontend:** push touching `frontend/**` → GitHub Action (`deploy-frontend.yml`) runs `vercel deploy --prod` → live in ~2 min.
-- **No manual steps needed** for either, once the two GitHub Actions secrets are set (`RENDER_DEPLOY_HOOK_URL` for backend; `VERCEL_TOKEN` + `VERCEL_ORG_ID` + `VERCEL_PROJECT_ID` for frontend).
+- **Backend:** push touching `src/`, `pom.xml`, `mvnw`, or `Dockerfile` → CI must pass → `deploy-backend.yml` fires the Render deploy hook → then verifies the live `/api/v1/meta/build` revision + readiness.
+- **Frontend:** push touching `frontend/**` → CI must pass → `deploy-frontend.yml` runs `vercel deploy --prod` → then verifies production routes.
+- **Hourly Production Watch** re-runs deep smoke tests and opens/closes a GitHub issue if production breaks or recovers.
+- **No manual steps needed** for routine deploys once GitHub Actions secrets are set (`RENDER_DEPLOY_HOOK_URL`; `VERCEL_TOKEN` + `VERCEL_ORG_ID` + `VERCEL_PROJECT_ID`).
 - **Database schema changes:** never edit `V1__initial_schema.sql`. Add a new `V{n}__description.sql` file under `src/main/resources/db/migration/` — Flyway applies it automatically on next backend boot.
+- **Encrypted backups:** configure the secrets listed in `docs/runbooks/backup-restore.md` once; daily restore-tested dumps then run automatically.
 - **Rollback:** Render dashboard → your service → "Deploys" tab → pick a previous successful deploy → "Redeploy". Vercel: dashboard → "Deployments" → previous deployment → "Promote to Production".
+- **Long-running ops model:** `docs/runbooks/unattended-operations.md`.
 
 ---
 

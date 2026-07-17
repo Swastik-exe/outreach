@@ -56,3 +56,31 @@ jobs:
           fi
           curl -fsSL -X POST "$HOOK"
           echo "Render deploy hook triggered for ${{ github.event.workflow_run.head_sha || github.sha }}."
+
+      - name: Verify deployed revision and readiness
+        if: steps.filter.outputs.should_deploy == 'true'
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          API_BASE: https://outreach-u35s.onrender.com
+        run: |
+          # Render deploys are zero-downtime: the previous revision keeps serving
+          # until the new container passes its health check. Wait until both the
+          # expected SHA and readiness are visible, proving the new revision—not
+          # merely the old healthy one—is serving traffic.
+          for attempt in $(seq 1 60); do
+            TAG=$(curl --connect-timeout 10 --max-time 20 -fsS \
+              "$API_BASE/api/v1/meta/build" | jq -r '.data.tag // empty' || true)
+            READY=$(curl --connect-timeout 10 --max-time 20 -fsS \
+              "$API_BASE/actuator/health/readiness" | jq -r '.status // empty' || true)
+
+            if [[ "$EXPECTED_SHA" == "$TAG"* && "$READY" == "UP" ]]; then
+              echo "Verified backend revision $TAG with readiness UP."
+              exit 0
+            fi
+
+            echo "Attempt $attempt/60: live tag=${TAG:-unavailable}, readiness=${READY:-unavailable}"
+            sleep 15
+          done
+
+          echo "::error::Render did not serve expected revision $EXPECTED_SHA in 15 minutes."
+          exit 1

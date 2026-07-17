@@ -129,24 +129,30 @@ public class SubscriptionService {
                     "The Season Pass is a one-time purchase and doesn't renew — there's nothing to cancel.");
         }
 
-        if (sub.getRazorpaySubscriptionId() != null) {
-            try {
-                razorpayClient.cancelSubscription(sub.getRazorpaySubscriptionId());
-            } catch (Exception e) {
-                log.error("Razorpay cancel failed for subscription {}: {}",
-                        sub.getRazorpaySubscriptionId(), e.getMessage());
-                throw new BadRequestException(
-                        "Could not cancel with the payment provider. Please try again in a moment.");
-            }
-        }
-
-        sub.setStatus(SubStatus.cancelled);
-        sub.setUpdatedAt(OffsetDateTime.now());
-        subRepo.save(sub);
+        cancelRecurringSubscription(sub);
         log.info("User {} cancelled subscription {} — access until {}",
                 userId, sub.getRazorpaySubscriptionId(), sub.getPeriodEnd());
 
         return getSubscriptionInfo(userId);
+    }
+
+    /**
+     * Idempotent payment cleanup used before permanent account deletion.
+     * Cancels active or pending recurring subscriptions so deleting the local
+     * record can never leave a billable provider subscription behind.
+     */
+    @Transactional
+    public void cancelForAccountDeletion(UUID userId) {
+        subRepo.findByUserId(userId).ifPresent(sub -> {
+            if (Boolean.TRUE.equals(sub.getIsSeasonPass())
+                    || sub.getRazorpaySubscriptionId() == null
+                    || sub.getStatus() == SubStatus.cancelled
+                    || sub.getStatus() == SubStatus.expired) {
+                return;
+            }
+            cancelRecurringSubscription(sub);
+            log.info("Cancelled recurring subscription before deleting account for user {}", userId);
+        });
     }
 
     // ── Read ──────────────────────────────────────────────────────────────────
@@ -327,6 +333,23 @@ public class SubscriptionService {
         user.setUpdatedAt(OffsetDateTime.now());
         userRepo.save(user);
         quotaService.syncLimitsForPlan(user.getId(), PlanTier.free);
+    }
+
+    private void cancelRecurringSubscription(Subscription sub) {
+        if (sub.getRazorpaySubscriptionId() != null) {
+            try {
+                razorpayClient.cancelSubscription(sub.getRazorpaySubscriptionId());
+            } catch (Exception e) {
+                log.error("Razorpay cancel failed for subscription {}: {}",
+                        sub.getRazorpaySubscriptionId(), e.getMessage());
+                throw new BadRequestException(
+                        "Could not cancel with the payment provider. Please try again in a moment.");
+            }
+        }
+
+        sub.setStatus(SubStatus.cancelled);
+        sub.setUpdatedAt(OffsetDateTime.now());
+        subRepo.save(sub);
     }
 
     static boolean isExpired(Subscription sub) {

@@ -11,9 +11,11 @@
 ## First steps
 
 1. **Check readiness:** https://outreach-u35s.onrender.com/actuator/health/readiness (DB + process — used by Render). Aggregate `/actuator/health` may show Redis DOWN while the app still serves traffic.
-2. **Check Render logs** for stack traces or OOM.
-3. **Check Vercel** deployment status for frontend.
-4. **UptimeRobot** — confirm external perspective (point the monitor at `/actuator/health/readiness`).
+2. **Check GitHub Actions → Production Watch** — hourly synthetic smoke may already have opened `[automated] Production smoke test failing`.
+3. **Check Render logs** for stack traces or OOM.
+4. **Check Vercel** deployment status for frontend.
+5. **UptimeRobot** — confirm external perspective (point the monitor at `/actuator/health/readiness`).
+6. See also [unattended-operations.md](./unattended-operations.md) for the full automation map.
 
 ## Common issues
 

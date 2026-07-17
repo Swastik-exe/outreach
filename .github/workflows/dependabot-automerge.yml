@@ -1,0 +1,34 @@
+name: Dependabot Safe Auto-Merge
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  enable-auto-merge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      # This workflow never checks out or executes pull-request code. It only
+      # reads Dependabot's signed metadata and queues narrowly scoped patch
+      # updates; required branch checks must pass before GitHub merges them.
+      - name: Read Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Queue patch update after required checks
+        if: steps.metadata.outputs.update-type == 'version-update:semver-patch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --squash "$PR_URL"
+
+      - name: Require review for wider changes
+        if: steps.metadata.outputs.update-type != 'version-update:semver-patch'
+        run: echo "Minor, major, and unknown updates remain open for review."

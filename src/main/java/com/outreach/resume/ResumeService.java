@@ -72,6 +72,7 @@ public class ResumeService {
             bytes = file.getBytes();
             PdfValidation.requirePdfMagicBytes(bytes);
             fileUrl = fileStorage.store(key, bytes, PDF_TYPE);
+            deleteStoredFileIfTransactionRollsBack(key);
         } catch (IOException e) {
             throw new RuntimeException("Failed to store resume file", e);
         }
@@ -176,15 +177,24 @@ public class ResumeService {
     }
 
     // -------------------------------------------------------------------------
-    // Delete (soft via is_active = false; hard delete of file not yet wired)
+    // Delete
     // -------------------------------------------------------------------------
 
     @Transactional
     public void delete(UUID resumeId, UUID userId) {
         Resume resume = findOwned(resumeId, userId);
-        // Soft-delete: mark inactive (no deleted_at column in resumes table)
-        resume.setIsActive(false);
-        resumeRepo.save(resume);
+        String key = FileStorage.keyFromLocation(resume.getFileUrl());
+        try {
+            if (!key.isBlank()) {
+                fileStorage.delete(key);
+            }
+        } catch (IOException e) {
+            log.error("Could not delete stored file for resume {}", resumeId, e);
+            throw new BadRequestException(
+                    "Could not remove the stored resume. Nothing was deleted; please try again.");
+        }
+        resumeRepo.delete(resume);
+        resumeRepo.flush();
     }
 
     private Resume findOwned(UUID resumeId, UUID userId) {
@@ -194,6 +204,26 @@ public class ResumeService {
             throw new ForbiddenException("Access denied");
         }
         return resume;
+    }
+
+    private void deleteStoredFileIfTransactionRollsBack(String key) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == TransactionSynchronization.STATUS_COMMITTED) {
+                    return;
+                }
+                try {
+                    fileStorage.delete(key);
+                } catch (IOException cleanupError) {
+                    log.error("Could not clean up stored resume after transaction rollback: {}", key,
+                            cleanupError);
+                }
+            }
+        });
     }
 
     private ResumeResponse toResponse(Resume resume) {

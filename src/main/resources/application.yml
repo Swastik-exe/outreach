@@ -1,5 +1,6 @@
 server:
   port: ${PORT:8080}
+  shutdown: graceful
   servlet:
     context-path: /
   # Trust X-Forwarded-* from Render/proxy so getRemoteAddr() is the real client.
@@ -12,6 +13,9 @@ server:
 spring:
   application:
     name: outreach
+
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
 
   servlet:
     multipart:
@@ -111,7 +115,9 @@ cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}
 
 app:
-  build-tag: ${BUILD_TAG:local}
+  # Render provides RENDER_GIT_COMMIT at runtime. Exposing it through /meta/build
+  # lets deployment automation prove that the intended revision is actually live.
+  build-tag: ${BUILD_TAG:${RENDER_GIT_COMMIT:local}}
   public-api-url: ${PUBLIC_API_URL:http://localhost:8080}
   jwt:
     secret: ${JWT_SECRET}

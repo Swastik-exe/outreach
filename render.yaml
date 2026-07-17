@@ -16,8 +16,6 @@ services:
       # ── Fixed for prod (safe to commit — not secrets) ──────────────────────
       - key: SPRING_PROFILES_ACTIVE
         value: prod
-      - key: BUILD_TAG
-        value: email-fix-v4
       - key: PUBLIC_API_URL
         value: https://outreach-u35s.onrender.com
       - key: COOKIE_SECURE

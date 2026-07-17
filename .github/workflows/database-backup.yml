@@ -1,0 +1,132 @@
+name: Encrypted Database Backup
+
+on:
+  schedule:
+    - cron: '41 20 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: database-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      restore-test:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: restore_test
+          POSTGRES_PASSWORD: restore_test
+          POSTGRES_DB: restore_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U restore_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_BACKUP_URL: ${{ secrets.DATABASE_BACKUP_URL }}
+      AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_RECIPIENT }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_R2_SECRET_ACCESS_KEY }}
+      R2_ACCOUNT_ID: ${{ secrets.BACKUP_R2_ACCOUNT_ID }}
+      R2_BUCKET: ${{ secrets.BACKUP_R2_BUCKET }}
+      AWS_DEFAULT_REGION: auto
+    steps:
+      - name: Check backup configuration
+        id: config
+        shell: bash
+        run: |
+          if [ -n "$DATABASE_BACKUP_URL" ] &&
+             [ -n "$AGE_RECIPIENT" ] &&
+             [ -n "$AWS_ACCESS_KEY_ID" ] &&
+             [ -n "$AWS_SECRET_ACCESS_KEY" ] &&
+             [ -n "$R2_ACCOUNT_ID" ] &&
+             [ -n "$R2_BUCKET" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Encrypted backups are not configured. See docs/runbooks/backup-restore.md."
+          fi
+
+      - name: Install backup tools
+        if: steps.config.outputs.enabled == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client age awscli
+
+      - name: Create consistent logical dump
+        if: steps.config.outputs.enabled == 'true'
+        run: |
+          mkdir -p backup
+          pg_dump "$DATABASE_BACKUP_URL" \
+            --format=custom \
+            --no-owner \
+            --no-privileges \
+            --file=backup/outreach.dump
+          pg_restore --list backup/outreach.dump >/dev/null
+
+      - name: Prove the backup restores
+        if: steps.config.outputs.enabled == 'true'
+        env:
+          PGPASSWORD: restore_test
+        run: |
+          pg_restore \
+            --host=localhost \
+            --port=5433 \
+            --username=restore_test \
+            --dbname=restore_test \
+            --no-owner \
+            --no-privileges \
+            backup/outreach.dump
+          psql \
+            --host=localhost \
+            --port=5433 \
+            --username=restore_test \
+            --dbname=restore_test \
+            --set=ON_ERROR_STOP=1 \
+            --command='SELECT COUNT(*) AS migrations FROM flyway_schema_history;' \
+            --command='SELECT COUNT(*) AS users FROM users;'
+
+      - name: Encrypt and upload to R2
+        if: steps.config.outputs.enabled == 'true'
+        id: upload
+        run: |
+          timestamp=$(date -u +'%Y-%m-%dT%H-%M-%SZ')
+          encrypted="backup/outreach-${timestamp}.dump.age"
+          age --recipient "$AGE_RECIPIENT" --output "$encrypted" backup/outreach.dump
+          sha256sum "$encrypted" > "${encrypted}.sha256"
+          rm -f backup/outreach.dump
+
+          endpoint="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          aws --endpoint-url "$endpoint" s3 cp "$encrypted" \
+            "s3://${R2_BUCKET}/postgres/$(basename "$encrypted")" \
+            --only-show-errors
+          aws --endpoint-url "$endpoint" s3 cp "${encrypted}.sha256" \
+            "s3://${R2_BUCKET}/postgres/$(basename "${encrypted}.sha256")" \
+            --only-show-errors
+          echo "Uploaded encrypted, restore-tested backup $(basename "$encrypted")."
+
+      - name: Remove backups older than 35 days
+        if: steps.config.outputs.enabled == 'true'
+        run: |
+          endpoint="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          cutoff=$(date -u -d '35 days ago' +'%Y-%m-%dT%H:%M:%SZ')
+          aws --endpoint-url "$endpoint" s3api list-objects-v2 \
+            --bucket "$R2_BUCKET" \
+            --prefix postgres/ \
+            --output json |
+            jq -r --arg cutoff "$cutoff" \
+              '.Contents[]? | select(.LastModified < $cutoff) | .Key' |
+            while IFS= read -r key; do
+              [ -z "$key" ] && continue
+              aws --endpoint-url "$endpoint" s3 rm \
+                "s3://${R2_BUCKET}/${key}" --only-show-errors
+              echo "Removed expired backup object: $key"
+            done

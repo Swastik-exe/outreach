@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import {
   APP_STATUSES,
@@ -49,8 +49,9 @@ function timelineDotColor(status: string): string {
   return '#8B5CF6';
 }
 
-export default function ApplicationDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function ApplicationDetailPage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
   const router = useRouter();
   const [app, setApp] = useState<ApplicationResponse | null>(null);
   const [loading, setLoading] = useState(true);

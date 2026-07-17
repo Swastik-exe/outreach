@@ -81,8 +81,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Audit dependencies (high+)
-        run: npm audit --audit-level=high || true
+      - name: Audit production dependencies (high+)
+        # Development-only tooling advisories are tracked by the scheduled
+        # security workflow. A high vulnerability in shipped code blocks CI.
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Lint
         run: npm run lint

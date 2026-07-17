@@ -26,6 +26,15 @@ public interface FileStorage {
      */
     InputStream retrieve(String key) throws IOException;
 
-    /** Soft-delete or mark as inactive; implementations decide whether to actually remove the file. */
+    /** Permanently remove the stored object. Must be safe when the key no longer exists. */
     void delete(String key) throws IOException;
+
+    /** Extract the provider-independent object key from an internal local:// or r2:// location. */
+    static String keyFromLocation(String location) {
+        if (location == null || location.isBlank()) {
+            return "";
+        }
+        int separator = location.indexOf("://");
+        return separator >= 0 ? location.substring(separator + 3) : location;
+    }
 }

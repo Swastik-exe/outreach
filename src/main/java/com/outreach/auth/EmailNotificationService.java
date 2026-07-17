@@ -18,8 +18,9 @@ import java.time.Duration;
  * Delivery is scheduled after DB commit and runs on {@code freePool} so auth
  * endpoints return immediately instead of waiting on Resend HTTP.
  *
- * Graceful degradation: if RESEND_API_KEY is blank or the send fails,
- * the email body is logged (grep-friendly VERIFY TOKEN / RESET TOKEN markers).
+ * Graceful degradation: if RESEND_API_KEY is blank or the send fails, a
+ * non-sensitive delivery marker is logged. Authentication tokens and email
+ * bodies are never written to logs.
  */
 @Slf4j
 @Service
@@ -59,7 +60,7 @@ public class EmailNotificationService {
                 <p>If you did not register, ignore this email.</p>
                 """.formatted(link);
         scheduleDelivery(() -> send(email, "Verify your Outreach email", html,
-                "VERIFY TOKEN " + rawToken));
+                "verification email"));
     }
 
     public void sendPasswordResetEmail(String email, String rawToken) {
@@ -71,7 +72,7 @@ public class EmailNotificationService {
                 <p>If you did not request this, ignore this email.</p>
                 """.formatted(link);
         scheduleDelivery(() -> send(email, "Reset your Outreach password", html,
-                "RESET TOKEN " + rawToken));
+                "password reset email"));
     }
 
     public void sendExistingAccountEmail(String email, String rawToken) {
@@ -83,7 +84,7 @@ public class EmailNotificationService {
                 <p>If this wasn't you, ignore this email.</p>
                 """.formatted(link);
         scheduleDelivery(() -> send(email, "Your Outreach account already exists", html,
-                "EXISTING ACCOUNT RESET " + rawToken));
+                "existing-account email"));
     }
 
     public void sendResendVerificationEmail(String email, String rawToken) {
@@ -92,7 +93,7 @@ public class EmailNotificationService {
 
     public void sendEmail(String to, String subject, String htmlBody) {
         scheduleDelivery(() -> send(to, subject, htmlBody,
-                "EMAIL subject=" + subject + " to=" + to));
+                "notification email"));
     }
 
     private void scheduleDelivery(Runnable task) {

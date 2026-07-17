@@ -49,6 +49,7 @@ jobs:
 
       - name: Deploy via Vercel CLI
         if: steps.filter.outputs.should_deploy == 'true'
+        id: deploy
         working-directory: frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -63,4 +64,34 @@ jobs:
           npm install --global vercel@39.2.2
           vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
           vercel build --prod --token="$VERCEL_TOKEN"
-          vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "deployment_url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+          echo "Vercel promoted $DEPLOYMENT_URL to production."
+
+      - name: Verify frontend production routes
+        if: steps.filter.outputs.should_deploy == 'true'
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
+          PRODUCTION_URL: https://outreach-iota-ruddy.vercel.app
+        run: |
+          for attempt in $(seq 1 20); do
+            deployment_code=$(curl --connect-timeout 10 --max-time 20 -sS \
+              -o /dev/null -w '%{http_code}' "$DEPLOYMENT_URL/" || true)
+            production_code=$(curl --connect-timeout 10 --max-time 20 -sS \
+              -o /dev/null -w '%{http_code}' "$PRODUCTION_URL/" || true)
+            manifest_code=$(curl --connect-timeout 10 --max-time 20 -sS \
+              -o /dev/null -w '%{http_code}' "$PRODUCTION_URL/manifest.json" || true)
+
+            if [ "$deployment_code" = "200" ] &&
+               [ "$production_code" = "200" ] &&
+               [ "$manifest_code" = "200" ]; then
+              echo "Verified deployment, production alias, and PWA manifest."
+              exit 0
+            fi
+
+            echo "Attempt $attempt/20: deployment=$deployment_code production=$production_code manifest=$manifest_code"
+            sleep 10
+          done
+
+          echo "::error::Vercel production verification failed."
+          exit 1

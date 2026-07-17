@@ -4,16 +4,34 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: monday
+      time: "03:00"
+      timezone: Asia/Kolkata
     open-pull-requests-limit: 5
+    labels: [dependencies, backend]
+    commit-message:
+      prefix: deps
 
   - package-ecosystem: npm
     directory: /frontend
     schedule:
       interval: weekly
+      day: monday
+      time: "03:15"
+      timezone: Asia/Kolkata
     open-pull-requests-limit: 5
+    labels: [dependencies, frontend]
+    commit-message:
+      prefix: deps
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+      day: monday
+      time: "03:30"
+      timezone: Asia/Kolkata
     open-pull-requests-limit: 3
+    labels: [dependencies, automation]
+    commit-message:
+      prefix: ci

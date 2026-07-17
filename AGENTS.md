@@ -43,9 +43,15 @@ bash -c 'cd /mnt/c/Users/swast/OneDrive/Desktop/OUTREACH && git add <files> && g
 
 | Workflow | Triggers on | Action |
 |---|---|---|
-| `.github/workflows/ci.yml` | all pushes + PRs | `mvn package` + `npm run build` |
-| `.github/workflows/deploy-backend.yml` | `src/**`, `Dockerfile`, `pom.xml`, … | Render deploy hook |
-| `.github/workflows/deploy-frontend.yml` | `frontend/**` | Vercel CLI deploy |
+| `.github/workflows/ci.yml` | all pushes + PRs | full Maven tests + frontend lint/build + production npm audit |
+| `.github/workflows/deploy-backend.yml` | CI success + backend paths | Render deploy hook + live revision/readiness verification |
+| `.github/workflows/deploy-frontend.yml` | CI success + frontend paths | Vercel CLI deploy + production route verification |
+| `.github/workflows/production-watch.yml` | hourly | deep smoke tests; opens/closes incident issue |
+| `.github/workflows/security.yml` | push/PR + weekly | CodeQL, dependency review, container scan |
+| `.github/workflows/database-backup.yml` | daily when secrets set | encrypted restore-tested Postgres dump to R2 |
+| `.github/workflows/dependabot-automerge.yml` | Dependabot PRs | auto-merge patch updates after required checks |
+
+See `docs/runbooks/unattended-operations.md` for the long-running operations model.
 
 **Deploy order for env changes:** Render env vars first → then Vercel `NEXT_PUBLIC_API_URL` if backend URL changed.
 
@@ -57,6 +63,12 @@ bash -c 'cd /mnt/c/Users/swast/OneDrive/Desktop/OUTREACH && git add <files> && g
 | `VERCEL_TOKEN` | deploy-frontend |
 | `VERCEL_ORG_ID` | deploy-frontend |
 | `VERCEL_PROJECT_ID` | deploy-frontend |
+| `DATABASE_BACKUP_URL` | encrypted nightly backups (optional until set) |
+| `BACKUP_AGE_RECIPIENT` | encrypted nightly backups |
+| `BACKUP_R2_ACCOUNT_ID` | encrypted nightly backups |
+| `BACKUP_R2_ACCESS_KEY_ID` | encrypted nightly backups |
+| `BACKUP_R2_SECRET_ACCESS_KEY` | encrypted nightly backups |
+| `BACKUP_R2_BUCKET` | encrypted nightly backups |
 
 ## Environment variables
 

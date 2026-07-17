@@ -1,0 +1,98 @@
+name: Production Watch
+
+on:
+  schedule:
+    # UptimeRobot handles five-minute availability checks. This deeper synthetic
+    # check runs hourly and validates readiness, CORS, security headers, frontend,
+    # API error shape, and production-only endpoint restrictions.
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: production-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run production smoke tests
+        id: smoke
+        continue-on-error: true
+        run: bash scripts/smoke-prod.sh
+
+      - name: Open or update incident issue
+        if: steps.smoke.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '[automated] Production smoke test failing';
+            const { owner, repo } = context.repo;
+            const open = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100
+            });
+            const existing = open.find(issue => issue.title === title && !issue.pull_request);
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const body = [
+              'The hourly production smoke test failed.',
+              '',
+              `Run: ${runUrl}`,
+              `Detected: ${new Date().toISOString()}`,
+              '',
+              'Follow `docs/runbooks/incident-response.md`. The workflow will close this issue automatically after recovery.'
+            ].join('\n');
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: existing.number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({ owner, repo, title, body });
+            }
+
+      - name: Close recovered incident issue
+        if: steps.smoke.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '[automated] Production smoke test failing';
+            const { owner, repo } = context.repo;
+            const open = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100
+            });
+            const existing = open.find(issue => issue.title === title && !issue.pull_request);
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: existing.number,
+                body: `Production smoke tests recovered automatically at ${new Date().toISOString()}.`
+              });
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: existing.number,
+                state: 'closed',
+                state_reason: 'completed'
+              });
+            }
+
+      - name: Fail workflow when production is unhealthy
+        if: steps.smoke.outcome == 'failure'
+        run: exit 1
