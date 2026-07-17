@@ -91,7 +91,9 @@ jobs:
       - name: Build current production image with fresh base layers
         run: docker build --pull --tag outreach-security-scan:${{ github.sha }} .
       - name: Scan container for fixable critical vulnerabilities
-        uses: aquasecurity/trivy-action@0.33.1
+        # v0.36.0 pinned by immutable SHA. Older 0.31.0–0.33.1 releases have
+        # CVE-2026-26189; mutable tags are avoided after the 2026 tag compromise.
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: outreach-security-scan:${{ github.sha }}
           format: sarif
@@ -104,7 +106,7 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
       - name: Enforce critical vulnerability gate
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: outreach-security-scan:${{ github.sha }}
           format: table
