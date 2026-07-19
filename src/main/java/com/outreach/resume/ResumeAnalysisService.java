@@ -9,6 +9,7 @@ import com.outreach.ai.provider.AiRouter;
 import com.outreach.billing.PlanConfig;
 import com.outreach.billing.QuotaService;
 import com.outreach.common.exception.TooManyRequestsException;
+import com.outreach.score.ScoreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -40,6 +41,7 @@ public class ResumeAnalysisService {
     private final AiRouter               aiRouter;
     private final AiInteractionLogger    logger;
     private final ObjectMapper           objectMapper;
+    private final ScoreService           scoreService;
 
     /**
      * Synchronously analyse a resume that already has parsed text.
@@ -74,7 +76,9 @@ public class ResumeAnalysisService {
 
             applyResults(resume, aiResponse);
             success = true;
-            return resumeRepo.save(resume);
+            Resume saved = resumeRepo.save(resume);
+            scoreService.markStale(userId);
+            return saved;
         } catch (Exception e) {
             log.error("Analysis failed for resume {}: {}", resume.getId(), e.getMessage(), e);
             resume.setAnalysisStatus("failed");

@@ -28,7 +28,7 @@ const COMPONENT_META: Record<
   applications: { label: 'Applications & momentum', key: 'applicationsScore', max: 200 },
   resume: { label: 'Resume readiness', key: 'resumeScore', max: 250 },
   skills: { label: 'Skills evidence', key: 'skillsScore', max: 150 },
-  profile: { label: 'Profile & outreach', key: 'profileScore', max: 150 },
+  profile: { label: 'Profile completeness', key: 'profileScore', max: 150 },
   github: { label: 'GitHub', key: 'githubScore', max: 150 },
   cgpa: { label: 'CGPA', key: 'cgpaComponent', max: 100 },
 };
@@ -48,14 +48,14 @@ function firstNameFromEmail(email: string | undefined): string | null {
 }
 
 function formatUpdated(iso: string | null): string {
-  if (!iso) return 'Updates daily as you act';
+  if (!iso) return 'Updates when you act · stale scores refresh overnight';
   const d = new Date(iso);
   const diffMs = Date.now() - d.getTime();
   const hours = Math.floor(diffMs / 3_600_000);
-  if (hours < 1) return 'Updated just now · Recalculates nightly';
-  if (hours < 24) return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago · Recalculates nightly`;
+  if (hours < 1) return 'Updated just now · stale scores refresh overnight';
+  if (hours < 24) return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago · stale scores refresh overnight`;
   const days = Math.floor(hours / 24);
-  return `Updated ${days} day${days === 1 ? '' : 's'} ago · Recalculates nightly`;
+  return `Updated ${days} day${days === 1 ? '' : 's'} ago · stale scores refresh overnight`;
 }
 
 export default function DashboardPage() {
@@ -221,11 +221,11 @@ export default function DashboardPage() {
   const isNew = score.overallScore < 301;
 
   const heroLine = isNew
-    ? 'Your starting point — not a verdict. Most people begin between 200 and 320; the fastest way up is right below.'
+    ? 'Your starting point — not a verdict. Upload a resume or track an application to give the score something to work with.'
     : score.readinessNote;
 
   const heroMicro = score.stale
-    ? 'Score may be outdated · Recalculates nightly'
+    ? 'Score may be outdated · Stale scores refresh overnight'
     : formatUpdated(score.lastComputedAt);
 
   const nextTitle = isNew
@@ -233,7 +233,7 @@ export default function DashboardPage() {
     : (score.nextAction ?? 'Keep building momentum');
 
   const nextBody = isNew
-    ? 'Resume readiness is low only because there is nothing to score yet. A first upload typically adds 80–120 points — the single fastest climb available to you.'
+    ? 'Resume readiness is low only because there is nothing to score yet. After analysis finishes, refresh your score (or wait for the overnight stale refresh) to see the update.'
     : 'Highest estimated impact based on your current components. Open the full breakdown to see why.';
 
   const nextHref =

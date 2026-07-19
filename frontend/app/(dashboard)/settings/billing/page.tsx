@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { api } from '@/lib/api';
-import { DEFAULT_PRICING, charmPrice, planLabel } from '@/lib/billing';
+import { charmPrice, planLabel } from '@/lib/billing';
 import type { SubscriptionInfoResponse } from '@/lib/types';
 import { ApplicationSkeleton } from '@/components/tracker/ApplicationSkeleton';
 import { ErrorState } from '@/components/tracker/TrackerStates';
@@ -181,7 +181,6 @@ export default function BillingSettingsPage() {
             {info.usage.map((m) => {
               const pct = m.limit > 0 ? Math.min(100, (m.used / m.limit) * 100) : 0;
               const atLimit = m.limit > 0 && m.used >= m.limit;
-              const unlimited = m.limit <= 0 || m.limit >= 999;
               return (
                 <div key={m.metric}>
                   <div className="flex items-baseline gap-2.5 flex-wrap">
@@ -189,13 +188,13 @@ export default function BillingSettingsPage() {
                       {m.metric.replace(/_/g, ' ')}
                     </span>
                     <span className="ml-auto font-mono text-[12.5px] text-muted tabular-nums">
-                      {m.used}{unlimited ? ' this cycle' : ` / ${m.limit}`}
+                      {m.used} / {m.limit > 0 ? m.limit : '—'}
                     </span>
                   </div>
                   <div className="h-1.5 rounded-sm bg-inner overflow-hidden mt-1.5">
                     <div
                       className={cn('h-full rounded-sm transition-all', usageBarColor(pct, atLimit))}
-                      style={{ width: unlimited ? `${Math.min(100, m.used * 3)}%` : `${pct}%` }}
+                      style={{ width: `${pct}%` }}
                       role="progressbar"
                       aria-valuenow={m.used}
                       aria-valuemin={0}
@@ -203,9 +202,7 @@ export default function BillingSettingsPage() {
                     />
                   </div>
                   <div className="text-xs text-dim mt-1">
-                    {unlimited
-                      ? 'Unlimited on your plan — the bar is just your pace, not a cap.'
-                      : `Resets ${fmtDate(m.resetsAt)}`}
+                    Resets {fmtDate(m.resetsAt)}
                   </div>
                 </div>
               );
@@ -214,41 +211,17 @@ export default function BillingSettingsPage() {
         )}
       </section>
 
-      {/* Locked Pro preview */}
-      <section aria-label="Locked feature preview" className="bg-card border border-border rounded-2xl px-[22px] py-5">
+      {/* Coming soon — not available yet */}
+      <section aria-label="Coming soon" className="bg-card border border-border rounded-2xl px-[22px] py-5">
         <div className="flex items-center gap-2.5 flex-wrap">
-          <h2 className="font-space font-semibold text-[15px] m-0">In Pro: per-JD resume match</h2>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber/10 border border-amber/30 text-[11.5px] font-semibold text-amber">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M6 10V8a6 6 0 1 1 12 0v2 M5 10h14v10H5Z" />
-            </svg>
-            Pro
+          <h2 className="font-space font-semibold text-[15px] m-0">Per-JD resume match</h2>
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-inner border border-border text-[11.5px] font-semibold text-dim">
+            Coming soon
           </span>
         </div>
-        <div className="relative mt-3.5 rounded-xl overflow-hidden border border-inner">
-          <div aria-hidden="true" className="blur-[7px] opacity-55 p-4 flex flex-col gap-2.5 bg-surface">
-            <div className="flex gap-2.5 items-center">
-              <span className="font-mono text-[22px] font-bold text-teal">86%</span>
-              <span className="text-[13px] text-muted">match · Acme Corp Software Engineer JD</span>
-            </div>
-            <div className="h-2 rounded bg-inner">
-              <span className="block h-full w-[86%] rounded bg-teal" />
-            </div>
-            <div className="text-[13px] text-muted">Missing: Kubernetes, gRPC · Strong: Java, Spring Boot, MySQL, Docker…</div>
-            <div className="text-[13px] text-muted">Suggested bullet rewrite for &quot;built REST APIs&quot;…</div>
-          </div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 bg-bg/55">
-            <div className="text-[13.5px] font-semibold text-text text-center max-w-[40ch] px-3.5">
-              Paste any job description, see how closely you match and what to fix — before you apply.
-            </div>
-            <Link
-              href="/pricing"
-              className="inline-flex items-center h-10 px-4 rounded-[10px] bg-amber text-[#1A1000] text-[13px] font-bold hover:bg-[#FBBF24] active:brightness-95 transition-colors"
-            >
-              See Pro · {charmPrice(DEFAULT_PRICING.monthly.amountInr)}/mo
-            </Link>
-          </div>
-        </div>
+        <p className="mt-2.5 mb-0 text-[13.5px] text-muted text-pretty">
+          Paste a job description and see keyword overlap suggestions. Not available yet — this is not a paid unlock today.
+        </p>
       </section>
     </div>
   );

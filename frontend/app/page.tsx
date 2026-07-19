@@ -10,7 +10,7 @@ import { LandingScoreMock } from '@/components/landing/LandingScoreMock';
 const FEATURES = [
   {
     title: 'Application Tracker',
-    body: 'Every application, every stage, one calm list. Follow-up reminders before things go quiet — forward a confirmation email and it files itself.',
+    body: 'Every application, every stage, one calm list. Follow-up reminders before things go quiet — forward a confirmation email and we draft it for you to approve.',
     foot: 'Statuses are journey markers, never red flags.',
     iconBg: 'rgba(124,58,237,.14)',
     iconColor: '#A78BFA',
@@ -18,7 +18,7 @@ const FEATURES = [
   },
   {
     title: 'Resume Analyzer',
-    body: 'Upload a PDF, get a readiness score plus the exact bullets to rewrite — with before/after examples and estimated point gains.',
+    body: 'Upload a PDF, get readiness scores plus prioritized fix suggestions from analysis (AI when available, otherwise a rule-based pass).',
     foot: 'Readiness signals — not a company\u2019s real ATS.',
     iconBg: 'rgba(45,212,191,.12)',
     iconColor: '#2DD4BF',
@@ -26,7 +26,7 @@ const FEATURES = [
   },
   {
     title: 'Career Health Score',
-    body: 'One number, 0–1000, recomputed daily from five explainable subscores. Every change comes with a reason and a next step.',
+    body: 'One number, 0–1000, from six explainable components. Stale scores refresh overnight; you can also refresh manually. Every change comes with a reason and a next step.',
     foot: 'Explainable, honest, yours.',
     iconBg: 'rgba(245,158,11,.12)',
     iconColor: '#F59E0B',
@@ -43,12 +43,12 @@ const STEPS = [
   {
     num: '2',
     title: 'See your starting score',
-    body: 'A calm 0–1000 readiness number. Most people begin between 200 and 320 — a starting point, not a verdict.',
+    body: 'A calm 0–1000 readiness number. A low first score is a starting point, not a verdict.',
   },
   {
     num: '3',
     title: 'Do the next action',
-    body: 'The dashboard always shows the single highest-impact step, with an estimated point gain.',
+    body: 'The dashboard highlights the next step from your score components — open the breakdown to see estimated upside.',
   },
 ] as const;
 

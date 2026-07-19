@@ -94,7 +94,7 @@ export default function BreakdownPage() {
             Where your {data.overallScore} comes from
           </h1>
           <div className="text-[13px] text-dim mt-0.5">
-            Five subscores, recomputed nightly · every change explained in{' '}
+            Six components, stale scores refresh overnight · every change explained in{' '}
             <Link
               href="/dashboard/history"
               className="text-primary-lt no-underline hover:text-[#C4B5FD]"
@@ -164,12 +164,12 @@ export default function BreakdownPage() {
 
       {data.githubWeightRedistributed && (
         <p className="text-[12.5px] text-dim text-center max-w-[64ch] mx-auto mt-1">
-          GitHub score redistributed — connect GitHub in your profile to unlock that component.
+          GitHub weight is redistributed across other components when GitHub is not connected — you can still reach 1000. Connecting GitHub switches to the GitHub component instead (requires a profile GitHub link when that UI ships).
         </p>
       )}
 
       <p className="text-[12.5px] text-dim text-center max-w-[64ch] mx-auto mt-1" style={{ textWrap: 'pretty' }}>
-        Weights are fixed for your cohort and never change mid-search. The score measures readiness
+        Weights are fixed globally and never change mid-search. The score measures readiness
         signals — it can&apos;t see luck, referrals, or interview-day nerves, and we won&apos;t pretend it does.
       </p>
     </div>

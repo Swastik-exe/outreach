@@ -24,9 +24,9 @@ export function UpgradePrompt({ feature, lockedPreview, className }: UpgradeProm
       role="region"
       aria-label="Upgrade to unlock"
     >
-      <p className="font-medium text-primary-lt">You&apos;ve reached your free limit</p>
+      <p className="font-medium text-primary-lt">You&apos;ve reached your analysis limit</p>
       <p className="text-sm text-muted mt-1">
-        Upgrade to unlock more {feature} and keep building momentum.
+        Upgrade for a higher {feature} quota this cycle, or wait until your usage resets.
       </p>
 
       {lockedPreview && (

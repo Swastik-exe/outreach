@@ -72,7 +72,7 @@ export function DraftCard({ draft, onResolved }: DraftCardProps) {
           </span>
           <span className="mt-0.5 block text-[12.5px] text-dim">
             Parsed date: {fmtDate(draft.parsedDate)}
-            {confidencePct != null && ` · ${confidencePct}% match`}
+            {confidencePct != null && ` · ${confidencePct}% parse confidence`}
           </span>
         </span>
         {confidencePct != null && (
@@ -84,7 +84,7 @@ export function DraftCard({ draft, onResolved }: DraftCardProps) {
               border: `1px solid ${confColor.border}`,
             }}
           >
-            {confidencePct}% match
+            {confidencePct}% confidence
           </span>
         )}
       </div>

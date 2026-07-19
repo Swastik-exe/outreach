@@ -175,7 +175,7 @@ function UploadZone({ onFile }: { onFile: (f: File) => void }) {
       </span>
       <h2 className="mt-4 mb-1 font-space font-semibold text-[17px] text-text">Drop your resume here</h2>
       <p className="m-0 mb-[18px] text-sm text-muted max-w-[46ch] text-pretty">
-        PDF only, up to 5 MB. You&apos;ll get a readiness score and the exact fixes that raise it — usually in under 30 seconds.
+        PDF only, up to 5 MB. You&apos;ll get readiness scores and prioritized fix suggestions — often within about a minute.
       </p>
       <div
         role="button"
@@ -198,7 +198,9 @@ function UploadZone({ onFile }: { onFile: (f: File) => void }) {
         aria-hidden="true"
         tabIndex={-1}
       />
-      <div className="mt-4 text-xs text-dim">Your file is analyzed and stored privately. Delete it anytime.</div>
+      <div className="mt-4 text-xs text-dim max-w-[48ch] text-pretty">
+        Analyzed and stored privately — delete anytime. Extracted resume text may be sent to third-party AI providers (Google Gemini or Groq) when those services are configured; otherwise we use a local rule-based pass.
+      </div>
     </section>
   );
 }
@@ -332,7 +334,7 @@ export default function ResumePage() {
     : error
       ? 'Could not load resumes'
       : resumes.length === 0
-        ? 'No resume yet — your first upload is the fastest score gain available'
+        ? 'No resume yet — upload one to unlock resume readiness in your Career Health Score'
         : `${resumes.length} version${resumes.length === 1 ? '' : 's'} analyzed · readiness signals, not a company ATS`;
 
   return (

@@ -8,7 +8,7 @@ const COMPONENT_LABELS: Record<string, { label: string; max: number }> = {
   applications: { label: 'Applications & momentum', max: 200 },
   resume:       { label: 'Resume readiness',       max: 250 },
   skills:       { label: 'Skills evidence',        max: 150 },
-  profile:      { label: 'Profile & outreach',     max: 150 },
+  profile:      { label: 'Profile completeness',    max: 150 },
   github:       { label: 'GitHub',                 max: 150 },
   cgpa:         { label: 'CGPA',                   max: 100 },
 };
@@ -27,8 +27,6 @@ const CTA_MAP: Record<string, { label: string; href: string }> = {
   applications: { label: 'Open Tracker', href: '/tracker' },
   skills:       { label: 'Open Resume',  href: '/resume' },
   profile:      { label: 'Open Tracker', href: '/tracker' },
-  github:       { label: 'Settings',     href: '/settings' },
-  cgpa:         { label: 'Settings',     href: '/settings' },
 };
 
 function rgba(hex: string, alpha: number) {

@@ -35,7 +35,6 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionMsg, setActionMsg] = useState<string | null>(null);
   const [tab, setTab] = useState<FeedbackTab>('All');
-  const [resolved, setResolved] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const token = tokenStore.get();
@@ -71,15 +70,6 @@ export default function AdminPage() {
     } else {
       setActionMsg(res.error ?? 'Suspend failed');
     }
-  };
-
-  const toggleResolved = (id: string) => {
-    setResolved((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
   };
 
   if (allowed === false) {
@@ -126,8 +116,6 @@ export default function AdminPage() {
     return k.label === tab;
   });
 
-  const unresolved = feedback.filter((f) => !resolved.has(f.id)).length;
-
   return (
     <div className="w-full max-w-score mx-auto flex flex-col gap-4 -mt-2">
       {/* Admin header bar */}
@@ -150,7 +138,7 @@ export default function AdminPage() {
       <div className="flex items-baseline gap-3 flex-wrap">
         <h1 className="font-space font-semibold text-xl m-0">Today</h1>
         <span className="text-[12.5px] text-dim">
-          {new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })} · refreshes every 5 min
+          {new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })} · loaded once per visit
         </span>
       </div>
 
@@ -175,7 +163,7 @@ export default function AdminPage() {
         <div className="flex items-baseline gap-2.5 flex-wrap">
           <h2 className="font-space font-semibold text-[15px] m-0">Feedback inbox</h2>
           <span className="text-[12.5px] text-dim">
-            {unresolved} unresolved · {feedback.length} total
+            {feedback.length} total
           </span>
           <div
             role="tablist"
@@ -206,7 +194,6 @@ export default function AdminPage() {
           <div className="flex flex-col mt-1.5">
             {filtered.map((fb, i) => {
               const k = kindStyle(fb.type);
-              const done = resolved.has(fb.id);
               const meta = [
                 fb.userEmail ?? 'anonymous',
                 fb.screen ?? '—',
@@ -234,15 +221,8 @@ export default function AdminPage() {
                     <span className="block text-[13.5px] text-text text-pretty">{fb.message}</span>
                     <span className="block text-xs text-dim mt-0.5">{meta}</span>
                   </span>
-                  <span className="shrink-0 flex gap-2 self-center">
-                    <button
-                      type="button"
-                      onClick={() => toggleResolved(fb.id)}
-                      className="h-[34px] px-3 rounded-lg border border-border bg-surface text-text text-[12.5px] font-semibold hover:border-hover-border transition-colors"
-                    >
-                      {done ? 'Resolved' : 'Resolve'}
-                    </button>
-                    {fb.userId && (
+                  {fb.userId && (
+                    <span className="shrink-0 flex gap-2 self-center">
                       <button
                         type="button"
                         onClick={() => suspend(fb.userId!)}
@@ -250,8 +230,8 @@ export default function AdminPage() {
                       >
                         Suspend
                       </button>
-                    )}
-                  </span>
+                    </span>
+                  )}
                 </div>
               );
             })}
@@ -263,10 +243,8 @@ export default function AdminPage() {
         <section aria-label="System health" className="bg-card border border-border rounded-[14px] px-5 py-[18px]">
           <h2 className="font-space font-semibold text-[15px] m-0 mb-1">System health</h2>
           {[
-            { n: 'API p95 latency', v: '—', c: '#10B981', bt: false },
-            { n: 'Score pipeline', v: stats?.systemStatus ?? '—', c: '#10B981', bt: true },
-            { n: 'Email import queue', v: '—', c: '#10B981', bt: true },
-            { n: 'Resume parser', v: stats?.failedJobs ? `${stats.failedJobs} fails` : '—', c: '#F59E0B', bt: true },
+            { n: 'Score pipeline', v: stats?.systemStatus ?? '—', c: '#10B981', bt: false },
+            { n: 'Scheduled job failures (counter)', v: stats?.failedJobs != null ? String(stats.failedJobs) : '—', c: '#F59E0B', bt: true },
           ].map(({ n, v, c, bt }) => (
             <div key={n} className={cn('flex gap-3 items-center py-2.5', bt && 'border-t border-inner')}>
               <span aria-hidden="true" className="shrink-0 w-2 h-2 rounded-full" style={{ background: c }} />

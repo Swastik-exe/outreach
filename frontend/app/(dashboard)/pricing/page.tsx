@@ -18,11 +18,11 @@ const FAIR_PLAY = [
   },
   {
     q: 'What happens when I cancel?',
-    a: 'You keep everything you made — history, analyses, tracker. You just stop getting the paid extras. No exports held for ransom.',
+    a: 'You keep everything you made — history, analyses, tracker. You just stop getting the higher analysis quota. No exports held for ransom.',
   },
   {
     q: 'Is my data sold or shown to recruiters?',
-    a: 'Never sold. Nothing is visible to anyone unless you share a link yourself.',
+    a: 'Never sold. Nothing is visible to recruiters unless you share a link yourself. Resume and forwarded-email text may be sent to third-party AI providers (Google Gemini or Groq) for analysis when those services are configured — see the upload screen for the same notice.',
   },
   {
     q: 'Why should I trust the score?',
@@ -125,10 +125,8 @@ export default function PricingPage() {
       subC: 'text-primary-lt',
       bullets: [
         { t: 'Everything in Free' },
-        { t: 'Unlimited resume analyses' },
-        { t: 'Email-forwarding auto-import' },
-        { t: 'Full 90-day history + cohort view' },
-        { t: 'Priority score recomputes' },
+        { t: '100 resume analyses / 30-day cycle' },
+        { t: 'Same tracker, score, history, and cohort as Free' },
       ],
       cta: 'Go Plus',
       foot: 'Keep your data if you stop paying',
@@ -140,14 +138,13 @@ export default function PricingPage() {
       sub: 'Best value for committed builders',
       subC: 'text-dim',
       bullets: [
-        { t: 'Everything in Plus' },
-        { t: 'Per-job-description resume matching', dim: true },
-        { t: 'Mock interview question bank', dim: true },
-        { t: 'Weekly written score review', dim: true },
-        { t: 'Early access to new tools', dim: true },
+        { t: 'Everything in Plus (same 100-analysis quota)' },
+        { t: 'Billed once per year — lower effective monthly price' },
+        { t: 'Coming soon: per-JD resume match', dim: true },
+        { t: 'Coming soon: mock interview bank', dim: true },
       ],
       cta: 'Go Pro',
-      foot: 'Honest tier: skip it unless interviewing weekly',
+      foot: 'Same features as Plus today — annual billing only',
       btnStyle: 'outline',
     },
     {
@@ -156,10 +153,10 @@ export default function PricingPage() {
       sub: 'One payment, no auto-renew',
       subC: 'text-dim',
       bullets: [
-        { t: 'Everything in Plus for one season' },
-        { t: '20 resume analyses / month' },
-        { t: 'Full tracker + score engine' },
+        { t: '20 resume analyses / 30-day cycle' },
+        { t: 'Full tracker + Career Health Score' },
         { t: `${pricing.seasonPass.months ?? 6}-month season window` },
+        { t: 'No auto-renew after purchase' },
       ],
       cta: 'Get Season Pass',
       foot: 'No card on file after purchase',
@@ -176,7 +173,7 @@ export default function PricingPage() {
           Priced for a student budget. Honestly.
         </h1>
         <p className="mt-3 text-[15px] text-muted text-pretty">
-          Free covers a full serious search. Paid tiers add analysis depth and automation — no feature is held hostage, and your data stays yours if you stop.
+          Free covers tracking, scoring, history, cohort, and email drafts. Paid tiers raise your resume-analysis quota — nothing else is locked behind a paywall today.
         </p>
         <p className="mt-2.5 text-[12.5px] text-dim">
           Launch pricing — we&apos;re still tuning it with real users. If it changes, existing plans keep their price.
@@ -214,10 +211,10 @@ export default function PricingPage() {
           <div className="flex flex-col gap-2.5">
             {[
               'Unlimited application tracking',
-              'Career Health Score, daily',
-              '2 resume analyses / month',
-              'Follow-up reminders',
-              'Score history, 30 days',
+              'Career Health Score + 90-day history',
+              '3 resume analyses / 30-day cycle',
+              'Follow-up reminders + email-forward drafts',
+              'Anonymized cohort view (when enough peers)',
             ].map((t) => (
               <div key={t} className="flex gap-2.5 items-start">
                 <CheckIcon />
@@ -327,7 +324,7 @@ export default function PricingPage() {
             Season Pass — {charmPrice(seasonTier.amountInr)} once, valid {seasonTier.months ?? 6} months
           </div>
           <p className="mt-1 text-[13.5px] text-muted max-w-[70ch] text-pretty">
-            Everything in Plus for one full search, start to offer. One payment, no auto-renew, no card on file after purchase.
+            Higher analysis quota for one full search season. One payment, no auto-renew, no card on file after purchase.
           </p>
         </div>
         <button

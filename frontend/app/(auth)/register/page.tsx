@@ -124,7 +124,7 @@ export default function RegisterPage() {
         </button>
 
         <div className="mt-1 text-xs text-dim text-center" style={{ textWrap: 'pretty' }}>
-          Any email works · free forever plan · no card needed
+          Any email works · free plan · no card needed
         </div>
       </form>
     </AuthShell>

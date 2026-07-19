@@ -92,7 +92,7 @@ function ReadinessDisplay({ score, source, fileName }: { score: number | null; s
           </span>
         ) : source === 'ai' ? (
           <span className="inline-flex items-center gap-1.5 mt-1.5 px-2.5 py-1 rounded-full bg-success/10 border border-success/30 text-xs font-semibold text-success-lt">
-            Strong for your target
+            AI analysis
           </span>
         ) : null}
       </div>
@@ -311,10 +311,7 @@ export default function ResumeDetailPage() {
       )}
 
       {quotaReached && (
-        <UpgradePrompt
-          feature="resume analyses"
-          lockedPreview="Keyword gap: system design · Impact score: 78 · Top fix: Quantify achievements with metrics"
-        />
+        <UpgradePrompt feature="resume analyses" />
       )}
 
       {analyzeError && (
@@ -353,13 +350,9 @@ export default function ResumeDetailPage() {
                   <h2 className="m-0 font-space font-semibold text-[15px] text-text">Keyword coverage</h2>
                   <div className="text-[12.5px] text-dim mt-0.5">
                     {resume.targetRole
-                      ? `vs. recent postings for ${resume.targetRole}`
-                      : 'Skills commonly expected for your target role'}
+                      ? `Common skill gaps for ${resume.targetRole} from this analysis`
+                      : 'Skill gaps suggested by this analysis'}
                   </div>
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-success-lt mb-2">FOUND · from your resume</div>
-                  <p className="text-[12.5px] text-dim">Matched keywords appear in your analysis breakdown.</p>
                 </div>
                 <div>
                   <div className="text-xs font-semibold text-amber mb-2">
@@ -383,7 +376,7 @@ export default function ResumeDetailPage() {
             <section aria-label="Prioritized fixes" className="bg-card border border-border rounded-2xl p-[22px]">
               <div className="flex items-baseline gap-2.5 flex-wrap">
                 <h2 className="m-0 font-space font-semibold text-[15px] text-text">Fixes, in order of impact</h2>
-                <span className="ml-auto text-[12.5px] text-dim">Sorted by expected impact</span>
+                <span className="ml-auto text-[12.5px] text-dim">From this analysis pass</span>
               </div>
               <div className="flex flex-col mt-1.5">
                 {fixes.map((fix, i) => (

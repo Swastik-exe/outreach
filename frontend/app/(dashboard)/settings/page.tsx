@@ -88,7 +88,7 @@ export default function SettingsPage() {
       <header>
         <h1 className="font-space font-semibold text-[21px] text-text">Settings</h1>
         <p className="text-[13px] text-dim mt-0.5">
-          Account, forwarding, notifications — the essentials only
+          Account, forwarding, and account deletion — the essentials only
         </p>
         <Link
           href="/settings/billing"
@@ -109,7 +109,7 @@ export default function SettingsPage() {
           )}
         </div>
         <p className="mt-2 text-[13.5px] text-muted max-w-[64ch] text-pretty">
-          Forward any application confirmation to your private address and it lands in the Tracker as a draft. We parse only what you forward — we never read your inbox.
+          Forward any application confirmation to your private address. We create a Tracker draft for you to approve — nothing is added without you. We never read your inbox. Subject and body text may be sent to third-party AI (Gemini or Groq) to parse company/role when those services are configured; otherwise we use local heuristics.
         </p>
 
         {loading && (

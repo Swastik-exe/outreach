@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, tokenStore } from '@/lib/api';
 import { pageContent } from '@/lib/page';
@@ -52,16 +52,7 @@ function weeklyDeltaFromHistory(entries: HistoryEntry[]): number | null {
   return latest.overallScore - baseline.overallScore;
 }
 
-/** Decorative histogram bars — position reflects percentile, not raw counts (API has no histogram). */
-function percentileBars(percentile: number) {
-  const heights = [18, 24, 32, 44, 58, 72, 84, 88, 82, 70, 56, 46, 38, 30, 24, 19, 15, 12, 9, 7];
-  const youIdx = Math.round((percentile / 100) * (heights.length - 1));
-  return heights.map((h, i) => ({
-    h,
-    highlight: i === youIdx,
-    opacity: i === youIdx ? 1 : 0.5 + h / 200,
-  }));
-}
+/** Decorative histogram removed — API has no histogram series; percentile marker below is real. */
 
 export default function CohortPage() {
   const [cohort, setCohort] = useState<CohortInsightResponse | null>(null);
@@ -94,7 +85,6 @@ export default function CohortPage() {
   const parsed = parseCohortKey(cohort?.cohortKey);
   const percentile = cohort?.percentile ?? 0;
   const positionPct = Math.max(5, Math.min(95, percentile));
-  const bars = useMemo(() => percentileBars(percentile), [percentile]);
   const bandMeta = score ? getBandMeta(score.band) : null;
 
   const fetchShareCard = async (): Promise<Blob | null> => {
@@ -153,13 +143,13 @@ export default function CohortPage() {
         <section className="bg-card border border-border rounded-2xl px-5 py-8 text-center">
           <p className="text-muted text-sm max-w-[48ch] mx-auto">
             {error ||
-              'Cohort insights need a complete profile and enough peers in your target track. Finish onboarding and check back after the nightly stats job runs.'}
+              'Cohort insights need a target track on your profile and at least 20 peers on the same track. Check back after the nightly stats job runs.'}
           </p>
           <Link
-            href="/settings"
+            href="/dashboard"
             className="inline-flex mt-4 text-[13px] font-semibold text-primary-lt no-underline hover:text-[#C4B5FD]"
           >
-            Complete profile →
+            Back to dashboard →
           </Link>
         </section>
       </div>
@@ -235,19 +225,6 @@ export default function CohortPage() {
         </p>
 
         <div className="mt-5">
-          <div aria-hidden="true" className="flex items-end gap-[3px] h-[88px]">
-            {bars.map((b, i) => (
-              <span
-                key={i}
-                className="flex-1 rounded-t-[3px]"
-                style={{
-                  height: `${b.h}%`,
-                  backgroundColor: b.highlight ? '#A78BFA' : '#33456B',
-                  opacity: b.opacity,
-                }}
-              />
-            ))}
-          </div>
           <div className="relative h-[26px] mt-2">
             <div className="absolute inset-x-0 top-[11px] h-1 rounded-sm bg-inner" />
             <div
@@ -375,7 +352,7 @@ export default function CohortPage() {
             </button>
           </div>
           <div className="mt-2.5 text-[11.5px] text-dim text-center">
-            Your exact score is never on the card unless you choose it.
+            Progress cards include your current score and weekly change.
           </div>
         </section>
 
@@ -433,8 +410,7 @@ export default function CohortPage() {
             className="mt-auto pt-3 border-t border-inner text-[12.5px] text-dim"
             style={{ textWrap: 'pretty' }}
           >
-            Cohort = same stage + same target track. Medians, never identities. You can leave cohort
-            comparison off in Settings.
+            Cohort = same stage + same target track. Medians, never identities.
           </div>
         </section>
       </div>

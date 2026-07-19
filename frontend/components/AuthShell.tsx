@@ -36,8 +36,8 @@ export function AuthShell({ children }: { children: ReactNode }) {
         {children}
       </div>
 
-      <div className="mt-[18px] text-[12.5px] text-dim text-center max-w-[40ch]">
-        Your data stays yours — we never sell it, and you control what you share.
+      <div className="mt-[18px] text-[12.5px] text-dim text-center max-w-[42ch]">
+        Your data stays yours — we never sell it. Resume and email text may be sent to third-party AI (Gemini or Groq) for analysis when those services are configured.
       </div>
     </main>
   );
@@ -94,7 +94,7 @@ export function AuthDivider() {
   return (
     <div className="flex items-center gap-3 my-[18px]">
       <span className="flex-1 h-px bg-border" />
-      <span className="text-xs text-dim">or with any email</span>
+      <span className="text-xs text-dim">email &amp; password</span>
       <span className="flex-1 h-px bg-border" />
     </div>
   );
