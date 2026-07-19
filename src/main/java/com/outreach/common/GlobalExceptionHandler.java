@@ -1,10 +1,13 @@
 package com.outreach.common;
 
 import com.outreach.common.exception.AppException;
+import io.sentry.Sentry;
+import io.sentry.SentryLevel;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.QueryTimeoutException;
@@ -29,6 +32,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ApiResponse<Void>> handleApp(AppException ex) {
+        if (ex.getStatus().is5xxServerError()) {
+            captureServerError(ex, ex.getStatus());
+        }
         return ResponseEntity.status(ex.getStatus())
                 .body(ApiResponse.error(ex.getMessage(), ex.getErrorCode()));
     }
@@ -84,6 +90,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({CallNotPermittedException.class})
     public ResponseEntity<ApiResponse<Void>> handleCircuitOpen(CallNotPermittedException ex) {
         log.warn("Circuit breaker open: {}", ex.getMessage());
+        captureServerError(ex, HttpStatus.SERVICE_UNAVAILABLE);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiResponse.error(
                         "Service temporarily unavailable. Please try again shortly.",
@@ -93,6 +100,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({TimeoutException.class, QueryTimeoutException.class})
     public ResponseEntity<ApiResponse<Void>> handleTimeout(Exception ex) {
         log.warn("Request timeout: {}", ex.getMessage());
+        captureServerError(ex, HttpStatus.GATEWAY_TIMEOUT);
         return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT)
                 .body(ApiResponse.error("Request timed out. Please try again.", ApiErrorCode.GATEWAY_TIMEOUT));
     }
@@ -100,10 +108,23 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleAll(Exception ex) {
         log.error("Unhandled exception", ex);
+        captureServerError(ex, HttpStatus.INTERNAL_SERVER_ERROR);
         String message = activeProfile.contains("prod")
                 ? "Internal server error"
                 : ex.getMessage() != null ? ex.getMessage() : "Internal server error";
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error(message, ApiErrorCode.INTERNAL_ERROR));
+    }
+
+    private void captureServerError(Exception exception, HttpStatus status) {
+        Sentry.withScope(scope -> {
+            String requestId = MDC.get(RequestCorrelationFilter.MDC_KEY);
+            if (requestId != null && !requestId.isBlank()) {
+                scope.setTag("request_id", requestId);
+            }
+            scope.setTag("http.status_code", Integer.toString(status.value()));
+            scope.setLevel(SentryLevel.ERROR);
+            Sentry.captureException(exception);
+        });
     }
 }

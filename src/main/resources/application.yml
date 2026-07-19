@@ -184,6 +184,11 @@ sentry:
   dsn: ${SENTRY_DSN:}
   environment: ${SPRING_PROFILES_ACTIVE:local}
   send-default-pii: false
+  max-request-body-size: none
+  traces-sample-rate: 0.0
+  # Avoid turning ERROR logs (which may include emails/addresses) into events.
+  logging:
+    enabled: false
 
 resilience4j:
   circuitbreaker:

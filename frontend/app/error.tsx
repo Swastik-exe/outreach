@@ -1,6 +1,13 @@
 'use client';
 
-export default function Error({ reset }: { error: Error; reset: () => void }) {
+import { useEffect } from 'react';
+import { captureClientError } from '../lib/monitoring';
+
+export default function Error({ error, reset }: { error: Error; reset: () => void }) {
+  useEffect(() => {
+    captureClientError(error);
+  }, [error]);
+
   return (
     <main className="min-h-dvh bg-bg text-text flex items-center justify-center px-6">
       <div className="text-center max-w-[380px]">

@@ -28,9 +28,11 @@ public class DraftPurgeJob {
     public void run() {
         jobRunner.run("draft_ttl_purge", () -> {
             OffsetDateTime cutoff = OffsetDateTime.now().minusDays(PURGE_AFTER_DAYS);
-            int purged = draftRepo.purgeRawPayload(cutoff);
-            log.info("DraftPurgeJob: nulled raw_payload for {} drafts older than {} days",
-                    purged, PURGE_AFTER_DAYS);
+            int nulled = draftRepo.purgeRawPayload(cutoff);
+            int deleted = draftRepo.deleteResolvedBefore(cutoff);
+            log.info(
+                    "DraftPurgeJob: nulled raw_payload={} deleted resolved drafts={} older than {} days",
+                    nulled, deleted, PURGE_AFTER_DAYS);
         });
     }
 }

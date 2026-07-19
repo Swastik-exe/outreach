@@ -36,4 +36,14 @@ public interface InboundEmailDraftRepository extends JpaRepository<InboundEmailD
                AND raw_payload IS NOT NULL
             """, nativeQuery = true)
     int purgeRawPayload(@Param("cutoff") OffsetDateTime cutoff);
+
+    /** Hard-delete resolved drafts only after payload has been cleared. Never touches pending drafts. */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = """
+            DELETE FROM inbound_email_drafts
+             WHERE status IN ('confirmed','discarded')
+               AND created_at < :cutoff
+               AND raw_payload IS NULL
+            """, nativeQuery = true)
+    int deleteResolvedBefore(@Param("cutoff") OffsetDateTime cutoff);
 }

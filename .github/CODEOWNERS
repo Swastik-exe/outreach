@@ -1,0 +1,9 @@
+# Default owner for the whole repository
+*       @Swastik-exe
+
+# Critical paths
+/.github/               @Swastik-exe
+/src/                   @Swastik-exe
+/frontend/              @Swastik-exe
+/scripts/               @Swastik-exe
+SECURITY.md             @Swastik-exe

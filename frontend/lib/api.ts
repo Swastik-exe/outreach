@@ -1,6 +1,7 @@
 'use client';
 
 import type { ApiResponse, TokenResponse } from './types';
+import { captureApiFailure } from './monitoring';
 
 const BASE_URL =
   (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) ||
@@ -30,6 +31,9 @@ async function tryRefresh(): Promise<boolean> {
         method: 'POST',
         credentials: 'include',
       });
+      if (res.status >= 500) {
+        captureApiFailure('/auth/refresh', 'POST', 'server', res.status);
+      }
       if (!res.ok) return false;
       const body = (await res.json()) as ApiResponse<TokenResponse>;
       if (body.success && body.data?.accessToken) {
@@ -38,6 +42,7 @@ async function tryRefresh(): Promise<boolean> {
       }
       return false;
     } catch {
+      captureApiFailure('/auth/refresh', 'POST', 'network');
       return false;
     } finally {
       _refreshing = null;
@@ -53,6 +58,7 @@ async function apiFetch<T>(
   options: RequestInit & { _isRetry?: boolean } = {}
 ): Promise<ApiResponse<T>> {
   const { _isRetry, ...fetchOptions } = options;
+  const method = fetchOptions.method ?? 'GET';
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -76,8 +82,10 @@ async function apiFetch<T>(
     });
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') {
+      captureApiFailure(path, method, 'timeout');
       return { success: false, error: 'Request timed out. Please try again.' };
     }
+    captureApiFailure(path, method, 'network');
     return { success: false, error: 'Network error, please try again.' };
   } finally {
     clearTimeout(timeoutId);
@@ -95,9 +103,14 @@ async function apiFetch<T>(
     return { success: false, error: 'Session expired. Please log in again.' };
   }
 
+  if (res.status >= 500) {
+    captureApiFailure(path, method, 'server', res.status);
+  }
+
   try {
     return await res.json() as ApiResponse<T>;
   } catch {
+    captureApiFailure(path, method, 'invalid-response', res.status);
     return { success: false, error: 'Network error, please try again.' };
   }
 }
@@ -124,8 +137,10 @@ export async function apiUpload<T>(
     });
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') {
+      captureApiFailure(path, 'POST', 'timeout');
       return { success: false, error: 'Request timed out. Please try again.' };
     }
+    captureApiFailure(path, 'POST', 'network');
     return { success: false, error: 'Network error, please try again.' };
   } finally {
     clearTimeout(timeoutId);
@@ -141,9 +156,14 @@ export async function apiUpload<T>(
     return { success: false, error: 'Session expired. Please log in again.' };
   }
 
+  if (res.status >= 500) {
+    captureApiFailure(path, 'POST', 'server', res.status);
+  }
+
   try {
     return await res.json() as ApiResponse<T>;
   } catch {
+    captureApiFailure(path, 'POST', 'invalid-response', res.status);
     return { success: false, error: 'Network error, please try again.' };
   }
 }

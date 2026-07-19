@@ -16,7 +16,7 @@ provider outages, and major platform changes still require a human owner.
 | Security | push/PR + weekly | Dependency review, CodeQL, production npm audit, container scan |
 | Dependabot | weekly | Opens dependency PRs; patch updates auto-merge after required checks |
 | Encrypted DB backup | daily (when secrets set) | `pg_dump`, restore proof, age encryption, R2 upload, 35-day retention |
-| App jobs | nightly/daily | Score refresh, cohort stats, follow-ups, digest, draft purge, subscription expiry |
+| App jobs | nightly/daily | Score refresh, cohort stats, follow-ups, digest, draft purge, expired auth purge, subscription expiry |
 | Runtime resilience | continuous | AI circuit breakers, Redis fail-open, graceful shutdown, readiness probes |
 
 ## Required GitHub secrets (beyond deploy secrets)
@@ -62,6 +62,23 @@ These cannot be fully replaced by in-repo automation:
 2. Provider billing alerts for Render, Vercel, Supabase, Upstash, Cloudflare R2,
    Resend, Gemini/Groq, Razorpay, GitHub
 3. Optional Sentry DSNs (`SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`) for crash triage
+
+### Enable Sentry error monitoring
+
+Sentry is disabled when either DSN is blank; the application behaves normally
+and the SDK sends nothing.
+
+1. Backend: Render Dashboard → `outreach-backend` → Environment → add
+   `SENTRY_DSN` with the Spring Boot project's DSN, then deploy the latest
+   revision.
+2. Frontend: Vercel Dashboard → Outreach project → Settings → Environment
+   Variables → add `NEXT_PUBLIC_SENTRY_DSN` for Production, Preview, and
+   Development as desired, then redeploy. `NEXT_PUBLIC_*` values are embedded
+   at build time, so a redeploy is required.
+
+Both integrations discard request bodies, headers, cookies, breadcrumbs, user
+identity, and custom extras before transmission. Error messages are scrubbed
+for email addresses and common token formats.
 
 ## Owner-only responsibilities (cannot be automated away)
 
