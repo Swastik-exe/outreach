@@ -6,6 +6,7 @@ import com.outreach.common.PageParams;
 import com.outreach.tracker.dto.CreateApplicationResult;
 import com.outreach.tracker.inbound.dto.ConfirmDraftRequest;
 import com.outreach.tracker.inbound.dto.InboundDraftResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,7 +35,7 @@ public class InboundEmailController {
     @PostMapping("/drafts/{id}/confirm")
     public ResponseEntity<ApiResponse<CreateApplicationResult>> confirm(
             @PathVariable UUID id,
-            @RequestBody(required = false) ConfirmDraftRequest overrides) {
+            @Valid @RequestBody(required = false) ConfirmDraftRequest overrides) {
         CreateApplicationResult result = draftService.confirm(id, CurrentUser.getUserId(), overrides);
         return ResponseEntity.ok(ApiResponse.ok(result));
     }

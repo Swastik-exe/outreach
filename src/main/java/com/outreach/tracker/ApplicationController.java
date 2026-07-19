@@ -47,7 +47,7 @@ public class ApplicationController {
     @PutMapping("/{id}")
     public ApiResponse<ApplicationResponse> update(
             @PathVariable UUID id,
-            @RequestBody UpdateApplicationRequest req) {
+            @Valid @RequestBody UpdateApplicationRequest req) {
         return ApiResponse.ok(appService.update(id, CurrentUser.getUserId(), req));
     }
 

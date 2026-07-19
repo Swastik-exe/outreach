@@ -11,7 +11,7 @@ const TOKEN_PARAMETER = /(token|secret|password|authorization)=([^\s&]+)/gi;
 const UUID_SEGMENT = /\/[0-9a-f]{8}-[0-9a-f-]{27,36}(?=\/|$)/gi;
 const NUMBER_SEGMENT = /\/\d+(?=\/|$)/g;
 
-export function redactSensitiveText(value: string): string {
+function redactSensitiveText(value: string): string {
   return value
     .replace(EMAIL, '[redacted-email]')
     .replace(BEARER_TOKEN, 'Bearer [redacted]')

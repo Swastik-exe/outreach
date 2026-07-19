@@ -21,6 +21,8 @@ public interface ResumeRepository extends JpaRepository<Resume, UUID> {
 
     Optional<Resume> findByUserIdAndIsActiveTrue(UUID userId);
 
+    Optional<Resume> findByIdAndUser_Id(UUID id, UUID userId);
+
     /**
      * Deactivates all active resumes for a user EXCEPT the given one.
      * Called in the same transaction as activating the new resume to

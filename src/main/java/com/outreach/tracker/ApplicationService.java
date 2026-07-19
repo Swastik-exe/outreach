@@ -3,6 +3,7 @@ package com.outreach.tracker;
 import com.outreach.common.exception.BadRequestException;
 import com.outreach.common.exception.ConflictException;
 import com.outreach.common.exception.NotFoundException;
+import com.outreach.resume.Resume;
 import com.outreach.resume.ResumeRepository;
 import com.outreach.score.CareerHealthScoreRepository;
 import com.outreach.score.ScoreService;
@@ -86,9 +87,8 @@ public class ApplicationService {
                 .updatedAt(OffsetDateTime.now(ZoneOffset.UTC))
                 .build();
 
-        // Set resume reference if provided
         if (req.resumeId() != null) {
-            resumeRepo.findById(req.resumeId()).ifPresent(app::setResume);
+            app.setResume(requireOwnedResume(req.resumeId(), userId));
         }
 
         // Follow-up auto-due: 7 days after applied_date when status=applied
@@ -167,8 +167,8 @@ public class ApplicationService {
         if (req.recruiterEmail() != null) app.setRecruiterEmail(req.recruiterEmail());
         if (req.nextAction()     != null) app.setNextAction(req.nextAction());
         if (req.nextActionDue()  != null) app.setNextActionDue(req.nextActionDue());
-        if (req.resumeId()       != null) {
-            resumeRepo.findById(req.resumeId()).ifPresent(app::setResume);
+        if (req.resumeId() != null) {
+            app.setResume(requireOwnedResume(req.resumeId(), userId));
         }
         app.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
 
@@ -276,6 +276,12 @@ public class ApplicationService {
     private Application requireOwned(UUID id, UUID userId) {
         return appRepo.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NotFoundException("Application not found"));
+    }
+
+    /** Resolve a resume that belongs to the caller; rejects foreign resumeIds (IDOR). */
+    private Resume requireOwnedResume(UUID resumeId, UUID userId) {
+        return resumeRepo.findByIdAndUser_Id(resumeId, userId)
+                .orElseThrow(() -> new NotFoundException("Resume not found"));
     }
 
     private void appendTimeline(Application app, AppStatus status, String notes, String createdBy) {

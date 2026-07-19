@@ -11,7 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.OffsetDateTime;
 import java.util.concurrent.TimeUnit;
 
@@ -59,7 +60,7 @@ public class InboundEmailWebhookController {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(ApiResponse.error("Inbound email not configured"));
         }
-        if (!webhookSecret.equals(secret)) {
+        if (!constantTimeEquals(webhookSecret, secret)) {
             log.warn("Inbound webhook: invalid secret from unknown caller");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error("Invalid webhook secret"));
@@ -141,5 +142,15 @@ public class InboundEmailWebhookController {
         OffsetDateTime now = OffsetDateTime.now();
         return now.getYear() + "-" + now.getMonthValue() + "-" + now.getDayOfMonth()
                 + "T" + now.getHour();
+    }
+
+    /** Constant-time secret compare to reduce timing side-channels. */
+    static boolean constantTimeEquals(String expected, String provided) {
+        if (expected == null || provided == null) {
+            return false;
+        }
+        byte[] a = expected.getBytes(StandardCharsets.UTF_8);
+        byte[] b = provided.getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(a, b);
     }
 }

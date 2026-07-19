@@ -16,7 +16,7 @@ export const APP_STATUSES = [
   'withdrawn',
 ] as const;
 
-export type AppStatus = (typeof APP_STATUSES)[number];
+type AppStatus = (typeof APP_STATUSES)[number];
 
 export const TERMINAL_STATUSES = new Set<AppStatus>([
   'offer_accepted',

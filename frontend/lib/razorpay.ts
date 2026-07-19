@@ -24,7 +24,7 @@ function loadRazorpayScript(): Promise<void> {
   return scriptPromise;
 }
 
-export interface RazorpayOpenOptions {
+interface RazorpayOpenOptions {
   key: string;
   amountInr: number;
   currency: string;

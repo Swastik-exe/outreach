@@ -5,11 +5,9 @@ import { cn } from '@/lib/utils';
 
 interface BandBadgeProps {
   band: string;
-  bandRange?: string;
-  size?: 'sm' | 'md' | 'lg';
 }
 
-export function BandBadge({ band, bandRange, size = 'md' }: BandBadgeProps) {
+export function BandBadge({ band }: BandBadgeProps) {
   const meta = getBandMeta(band);
   const label = bandDisplayName(band);
 
@@ -17,9 +15,7 @@ export function BandBadge({ band, bandRange, size = 'md' }: BandBadgeProps) {
     <span
       className={cn(
         'inline-flex items-center gap-[7px] rounded-full font-semibold whitespace-nowrap border',
-        size === 'sm' && 'px-2.5 py-1 text-xs',
-        size === 'md' && 'px-3 py-[5px] text-[12.5px]',
-        size === 'lg' && 'px-3 py-[5px] text-[12.5px]',
+        'px-3 py-[5px] text-[12.5px]',
       )}
       style={{
         background: meta.chipBg,
@@ -33,9 +29,6 @@ export function BandBadge({ band, bandRange, size = 'md' }: BandBadgeProps) {
         aria-hidden="true"
       />
       {label}
-      {bandRange && (
-        <span className="opacity-60 font-normal">({bandRange})</span>
-      )}
     </span>
   );
 }
