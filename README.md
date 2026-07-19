@@ -61,9 +61,10 @@ docs/                         # Runbooks and ADRs
 ## Documentation
 
 - [AGENTS.md](AGENTS.md) — agent/developer playbook (deploy URLs, git workflow)
-- [PRODUCTION-HARDENING.md](PRODUCTION-HARDENING.md) — hardening checklist status
 - [CONTRIBUTING.md](CONTRIBUTING.md) — how to contribute
 - [brain.md](brain.md) — product and architecture notes
+- [DEPLOY-CHECKLIST.md](DEPLOY-CHECKLIST.md) — production env and deploy steps
+- [docs/](docs/) — runbooks and ADRs
 
 ## Deployment
 
