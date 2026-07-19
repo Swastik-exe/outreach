@@ -16,10 +16,15 @@ function VerifyForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const emailParam = searchParams.get('email') ?? '';
+  const linkError = searchParams.get('error') === '1';
   const [email, setEmail] = useState(emailParam);
   const [token, setToken] = useState(searchParams.get('token') ?? '');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [errorMsg, setErrorMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState(
+    linkError && !searchParams.get('token')
+      ? 'That verification link was missing a token. Request a new email below.'
+      : '',
+  );
   const [resendMsg, setResendMsg] = useState('');
   const [resending, setResending] = useState(false);
   const autoVerifyRan = useRef(false);
@@ -106,21 +111,24 @@ function VerifyForm() {
             {email ? (
               <>
                 We sent a verification link to{' '}
-                <span className="text-text font-semibold">{email}</span>. Open it, or paste the
-                token below.
+                <span className="text-text font-semibold">{email}</span>. Open the email and tap
+                Verify Email. If the link fails, paste the token from that email below.
               </>
             ) : (
-              <>Open the link in your email, or paste the verification token below.</>
+              <>
+                Open the Verify Email link in your inbox. If it fails, paste the token from that
+                email below.
+              </>
             )}
           </p>
 
           <form onSubmit={handleSubmit} className="w-full mt-5 flex flex-col gap-3 text-left">
-            {status === 'error' && (
+            {(status === 'error' || errorMsg) && (
               <div
                 role="alert"
                 className="rounded-[10px] bg-[rgba(251,113,133,0.10)] border border-[rgba(251,113,133,0.28)] px-3.5 py-3 text-[13.5px] text-error"
               >
-                {errorMsg}
+                {errorMsg || 'Verification failed'}
               </div>
             )}
 
@@ -133,7 +141,8 @@ function VerifyForm() {
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
                 className={`${authInputClass} font-mono`}
-                placeholder="Paste your verification token"
+                placeholder="Paste token from the email"
+                autoComplete="one-time-code"
               />
             </label>
 

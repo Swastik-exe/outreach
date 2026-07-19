@@ -52,13 +52,27 @@ public class EmailNotificationService {
     }
 
     public void sendVerificationEmail(String email, String rawToken) {
-        String link = publicApiUrl + "/api/v1/auth/verify-email?token=" + rawToken;
+        // Prefer the frontend URL so the click opens Vercel (usually warm) and
+        // the page posts the token to the API. The backend GET link remains as
+        // a backup for one-click verify without JS.
+        String frontendBase = frontendUrl == null ? "" : frontendUrl.strip().replaceAll("/$", "");
+        if (!frontendBase.isEmpty()
+                && !frontendBase.startsWith("http://")
+                && !frontendBase.startsWith("https://")) {
+            frontendBase = "https://" + frontendBase;
+        }
+        String frontendLink = frontendBase + "/verify-email?token=" + rawToken;
+        String apiLink = publicApiUrl + "/api/v1/auth/verify-email?token=" + rawToken;
         String html = """
                 <p>Welcome to Outreach!</p>
-                <p>Click the link below to verify your email (valid 24 hours):</p>
+                <p>Click the button below to verify your email (valid 24 hours):</p>
                 <p><a href="%s">Verify Email</a></p>
+                <p>If the button fails, open this backup link:</p>
+                <p><a href="%s">%s</a></p>
+                <p>Or paste this token on the verify page:</p>
+                <p><code>%s</code></p>
                 <p>If you did not register, ignore this email.</p>
-                """.formatted(link);
+                """.formatted(frontendLink, apiLink, apiLink, rawToken);
         scheduleDelivery(() -> send(email, "Verify your Outreach email", html,
                 "verification email"));
     }
